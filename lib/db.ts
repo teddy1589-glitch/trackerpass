@@ -31,6 +31,7 @@ export async function getOrderBySlug(slug: string) {
 
 export interface UpsertOrderData {
   amo_lead_id: number;
+  status_id?: number | null;
   status_step?: number | null;
   status_label?: string | null;
   car_info?: Record<string, unknown> | null;
@@ -45,8 +46,31 @@ function generateHashSlug(amoLeadId: number): string {
     .slice(0, 16);
 }
 
+function mapStatusToStep(statusId: number | null | undefined): number {
+  if (!statusId) {
+    return 1;
+  }
+  if (statusId === 41138689) {
+    return 2;
+  }
+  if (statusId === 41138692) {
+    return 3;
+  }
+  if (statusId === 41138695) {
+    return 4;
+  }
+  return 1;
+}
+
+function shouldGenerateHash(statusId: number | null | undefined): boolean {
+  return statusId === 41138689;
+}
+
 export async function upsertOrder(data: UpsertOrderData) {
-  const hashSlug = generateHashSlug(data.amo_lead_id);
+  const statusStep = data.status_step ?? mapStatusToStep(data.status_id);
+  const hashSlug = shouldGenerateHash(data.status_id)
+    ? generateHashSlug(data.amo_lead_id)
+    : null;
   const { rows } = await pool.query(
     `insert into rte.orders (
       amo_lead_id,
@@ -63,12 +87,13 @@ export async function upsertOrder(data: UpsertOrderData) {
         car_info = excluded.car_info,
         permit_info = excluded.permit_info,
         manager_contact = excluded.manager_contact,
+        hash_slug = coalesce(rte.orders.hash_slug, excluded.hash_slug),
         updated_at = now()
     returning *`,
     [
       data.amo_lead_id,
       hashSlug,
-      data.status_step ?? null,
+      statusStep,
       data.status_label ?? null,
       JSON.stringify(data.car_info ?? {}),
       JSON.stringify(data.permit_info ?? {}),

@@ -105,7 +105,7 @@ async function processLead(leadId: number): Promise<void> {
 
   const saved = await upsertOrder({
     amo_lead_id: lead.id,
-    status_step: 1,
+    status_id: lead.status_id,
     status_label: lead.name,
     car_info: carInfo,
     permit_info: permitInfo,
