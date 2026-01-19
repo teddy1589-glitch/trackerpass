@@ -46,8 +46,24 @@ async function processLead(leadId: number): Promise<void> {
   const client = new AmoCRMClient();
   const lead = await client.getLead(leadId);
   if (!lead) {
+    console.warn(`Webhook: lead ${leadId} not found in AmoCRM`);
     return;
   }
+
+  console.log(
+    "Webhook: fetched lead",
+    JSON.stringify(
+      {
+        id: lead.id,
+        name: lead.name,
+        status_id: lead.status_id,
+        responsible_user_id: lead.responsible_user_id,
+        custom_fields_count: lead.custom_fields_values?.length ?? 0,
+      },
+      null,
+      2,
+    ),
+  );
 
   const { carInfo, permitInfo } = mapCustomFields(lead.custom_fields_values);
 
@@ -61,7 +77,7 @@ async function processLead(leadId: number): Promise<void> {
     }
   }
 
-  await upsertOrder({
+  const saved = await upsertOrder({
     amo_lead_id: lead.id,
     status_step: 1,
     status_label: lead.name,
@@ -69,6 +85,19 @@ async function processLead(leadId: number): Promise<void> {
     permit_info: permitInfo,
     manager_contact: managerContact,
   });
+
+  console.log(
+    "Webhook: order upserted",
+    JSON.stringify(
+      {
+        amo_lead_id: lead.id,
+        hash_slug: saved?.hash_slug ?? null,
+        status_step: saved?.status_step ?? null,
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 export async function POST(request: NextRequest) {
