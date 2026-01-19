@@ -35,8 +35,33 @@ function mapCustomFields(
     if (value === undefined) {
       continue;
     }
-    // TODO: replace with explicit field_id mapping
-    carInfo[field.field_name || `field_${field.field_id}`] = value;
+    switch (field.field_id) {
+      case 1043841: // Срок действия пропуска
+        permitInfo.pass_expiry = value;
+        break;
+      case 744115: // Зона
+        permitInfo.zone = value;
+        break;
+      case 744117: // Тип пропуска
+        permitInfo.pass_type = value;
+        break;
+      case 924745: // VIN
+        carInfo.vin = value;
+        break;
+      case 924747: // Марка модель
+        carInfo.brand_model = value;
+        break;
+      case 1175381: // Диагностическая карта
+        carInfo.diagnostic_card = value;
+        break;
+      case 1175385: // Дата действия ДК
+        carInfo.diagnostic_card_valid_until = value;
+        break;
+      default:
+        // Store unmapped fields for future reference
+        carInfo[field.field_name || `field_${field.field_id}`] = value;
+        break;
+    }
   }
 
   return { carInfo, permitInfo };
