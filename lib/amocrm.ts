@@ -165,7 +165,12 @@ export class AmoCRMClient {
     if (!text) {
       return {} as T;
     }
-    if (contentType.includes("application/json")) {
+    const isJson =
+      contentType.includes("application/json") ||
+      contentType.includes("application/hal+json") ||
+      contentType.endsWith("+json");
+
+    if (isJson) {
       return JSON.parse(text) as T;
     }
     throw new Error(`Unexpected response content-type: ${contentType}`);
