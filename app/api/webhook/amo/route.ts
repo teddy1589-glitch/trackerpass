@@ -75,20 +75,7 @@ async function processLead(leadId: number): Promise<void> {
     return;
   }
 
-  console.log(
-    "Webhook: fetched lead",
-    JSON.stringify(
-      {
-        id: lead.id,
-        name: lead.name,
-        status_id: lead.status_id,
-        responsible_user_id: lead.responsible_user_id,
-        custom_fields_count: lead.custom_fields_values?.length ?? 0,
-      },
-      null,
-      2,
-    ),
-  );
+  console.log("Webhook: fetched lead (full)", JSON.stringify(lead, null, 2));
 
   const { carInfo, permitInfo } = mapCustomFields(lead.custom_fields_values);
 
