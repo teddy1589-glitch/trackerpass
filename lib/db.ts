@@ -22,12 +22,10 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export async function getOrderBySlug(slug: string) {
-  console.log("Track lookup slug:", slug);
   const { rows } = await pool.query(
     "select * from rte.orders where hash_slug = $1 limit 1",
     [slug],
   );
-  console.log("Track lookup result:", rows[0] ? "FOUND" : "NOT_FOUND");
   return rows[0] ?? null;
 }
 

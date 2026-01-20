@@ -66,16 +66,11 @@ async function getSlugFromHeaders() {
 export default async function TrackPage({
   params,
 }: {
-  params: { slug?: string };
+  params: { slug?: string } | Promise<{ slug?: string }>;
 }) {
-  console.log("TrackPage params:", params);
-  const slug = params?.slug ?? (await getSlugFromHeaders());
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug ?? (await getSlugFromHeaders());
   if (!slug) {
-    console.warn("TrackPage missing slug");
-    console.log(
-      "TrackPage headers:",
-      Object.fromEntries((await headers()).entries()),
-    );
     notFound();
   }
 
