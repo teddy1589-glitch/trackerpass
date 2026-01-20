@@ -29,6 +29,14 @@ export async function getOrderBySlug(slug: string) {
   return rows[0] ?? null;
 }
 
+export async function getOrderByLeadId(leadId: number) {
+  const { rows } = await pool.query(
+    "select * from rte.orders where amo_lead_id = $1 limit 1",
+    [leadId],
+  );
+  return rows[0] ?? null;
+}
+
 export interface UpsertOrderData {
   amo_lead_id: number;
   status_id?: number | null;
@@ -66,7 +74,7 @@ function mapStatusToStep(statusId: number | null | undefined): number {
 }
 
 function shouldGenerateHash(statusId: number | null | undefined): boolean {
-  return statusId === 41138689;
+  return statusId === 41138302 || statusId === 41138689;
 }
 
 export async function upsertOrder(data: UpsertOrderData) {

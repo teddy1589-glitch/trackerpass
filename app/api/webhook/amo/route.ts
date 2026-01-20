@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AmoCRMClient } from "@/lib/amocrm";
-import { upsertOrder } from "@/lib/db";
+import { getOrderByLeadId, upsertOrder } from "@/lib/db";
 import { calcPermitReadyAt, resolvePermitType } from "@/lib/deadline";
 
 interface AmoWebhookEvent {
@@ -78,6 +78,13 @@ async function processLead(leadId: number): Promise<void> {
 
   const { carInfo, permitInfo } = mapCustomFields(lead.custom_fields_values);
 
+  const shouldCreateLink =
+    lead.status_id === 41138302 || lead.status_id === 41138689;
+  const existingOrder = shouldCreateLink
+    ? await getOrderByLeadId(lead.id)
+    : null;
+  const hasExistingSlug = Boolean(existingOrder?.hash_slug);
+
   if (lead.status_id === 41138692) {
     const type = resolvePermitType(permitInfo.pass_type as string);
     if (type) {
@@ -137,6 +144,16 @@ async function processLead(leadId: number): Promise<void> {
       2,
     ),
   );
+
+  if (shouldCreateLink && saved?.hash_slug && !hasExistingSlug) {
+    const base = process.env.TRACK_BASE_URL ?? "http://89.44.86.30:3000/track";
+    const link = `${base}/${saved.hash_slug}`;
+    await client.addLeadNote(
+      lead.id,
+      `Ссылка на трекинг: ${link}`,
+    );
+    console.log("Webhook: tracking link note added", link);
+  }
 }
 
 export async function POST(request: NextRequest) {

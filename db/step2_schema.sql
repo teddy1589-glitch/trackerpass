@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   amo_lead_id INTEGER UNIQUE NOT NULL,
-  hash_slug TEXT UNIQUE NOT NULL,
+  hash_slug TEXT UNIQUE,
   status_step INTEGER CHECK (status_step >= 1 AND status_step <= 4),
   status_label TEXT,
   car_info JSONB DEFAULT '{}'::jsonb,
