@@ -145,7 +145,7 @@ export default async function TrackPage({
 
         <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-xs uppercase tracking-[0.2em] text-brand-muted">
           <span>RTE-Consult</span>
-          <span>Обновлено: {order.updated_at ?? "—"}</span>
+          <span>Обновлено: {toDisplayValue(order.updated_at) ?? "—"}</span>
         </div>
       </div>
     </main>
