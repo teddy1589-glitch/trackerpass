@@ -33,9 +33,16 @@ function ensureObject(value: Record<string, unknown> | string | null | undefined
 export default async function TrackPage({
   params,
 }: {
-  params: { slug: string };
+  params: { slug?: string };
 }) {
-  const order = (await getOrderBySlug(params.slug)) as OrderRow | null;
+  console.log("TrackPage params:", params);
+  const slug = params?.slug;
+  if (!slug) {
+    console.warn("TrackPage missing slug");
+    notFound();
+  }
+
+  const order = (await getOrderBySlug(slug)) as OrderRow | null;
   if (!order) {
     notFound();
   }
