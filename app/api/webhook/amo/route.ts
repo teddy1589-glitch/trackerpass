@@ -141,21 +141,39 @@ async function processLead(leadId: number): Promise<void> {
 
 export async function POST(request: NextRequest) {
   try {
+    const contentType = request.headers.get("content-type") || "";
     const rawBody = await request.text();
     if (!rawBody) {
+      return NextResponse.json({ message: "Empty payload" }, { status: 200 });
+    }
+
+    let payload: AmoWebhookEvent | null = null;
+
+    if (contentType.includes("application/json")) {
+      payload = JSON.parse(rawBody) as AmoWebhookEvent;
+    } else if (contentType.includes("application/x-www-form-urlencoded")) {
+      const params = new URLSearchParams(rawBody);
+      const addId = params.get("leads[add][0][id]");
+      const updateId = params.get("leads[update][0][id]");
+
+      payload = { leads: { add: [], update: [] } };
+      if (addId) {
+        payload.leads!.add!.push({ id: Number(addId) });
+      }
+      if (updateId) {
+        payload.leads!.update!.push({ id: Number(updateId) });
+      }
+    } else {
+      console.warn("Webhook received unsupported content-type:", contentType);
       return NextResponse.json(
-        { message: "Empty payload" },
+        { message: "Ignored unsupported payload" },
         { status: 200 },
       );
     }
 
-    let payload: AmoWebhookEvent;
-    try {
-      payload = JSON.parse(rawBody) as AmoWebhookEvent;
-    } catch (parseError) {
-      console.warn("Webhook received non-JSON payload");
+    if (!payload) {
       return NextResponse.json(
-        { message: "Ignored non-JSON payload" },
+        { message: "Invalid payload" },
         { status: 200 },
       );
     }
