@@ -5,8 +5,9 @@ import { FieldRow } from "@/components/tracker/FieldRow";
 
 export default function TrackDemoPage() {
   const demo = {
-    status_label: "Подано",
-    status_step: 3,
+    status_label: "Отказ",
+    status_step: 4,
+    status_id: 41138698,
     car_info: {
       vin: "WVWZZZ1KZ6W000001",
       brand_model: "Volkswagen Transporter T6",
@@ -35,6 +36,7 @@ export default function TrackDemoPage() {
         <StatusCard
           title={demo.status_label}
           step={demo.status_step}
+          statusId={demo.status_id}
         />
 
         <div className="grid gap-6 lg:grid-cols-2">

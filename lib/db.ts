@@ -59,6 +59,9 @@ function mapStatusToStep(statusId: number | null | undefined): number {
   if (statusId === 41138695) {
     return 4;
   }
+  if (statusId === 41138698) {
+    return 4;
+  }
   return 1;
 }
 

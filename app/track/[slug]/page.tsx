@@ -6,6 +6,7 @@ import { FieldRow } from "@/components/tracker/FieldRow";
 import { getOrderBySlug } from "@/lib/db";
 
 interface OrderRow {
+  status_id?: number | null;
   status_step?: number | null;
   status_label?: string | null;
   car_info?: Record<string, unknown> | string | null;
@@ -51,6 +52,7 @@ export default async function TrackPage({
         <StatusCard
           title={order.status_label ?? "Статус формируется"}
           step={order.status_step ?? 1}
+          statusId={order.status_id ?? null}
         />
 
         <div className="grid gap-6 lg:grid-cols-2">

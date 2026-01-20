@@ -1,17 +1,21 @@
 interface StatusCardProps {
   title: string;
   step: number;
+  statusId?: number | null;
 }
 
-const steps = [
-  "Подготовка",
-  "Подать",
-  "Подано",
-  "Пропуск вышел",
-];
+const defaultSteps = ["Подготовка", "Подать", "Подано", "Пропуск вышел"];
 
-export function StatusCard({ title, step }: StatusCardProps) {
+function getSteps(statusId?: number | null) {
+  if (statusId === 41138698) {
+    return ["Подготовка", "Подать", "Подано", "Отказ"];
+  }
+  return defaultSteps;
+}
+
+export function StatusCard({ title, step, statusId }: StatusCardProps) {
   const activeStep = Math.min(Math.max(step, 1), 4);
+  const steps = getSteps(statusId);
   return (
     <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-premium backdrop-blur">
       <div className="flex flex-col gap-3">
