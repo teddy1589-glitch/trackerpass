@@ -16,7 +16,9 @@ function getSteps(statusId?: number | null) {
 export function StatusCard({ title, step, statusId }: StatusCardProps) {
   const activeStep = Math.min(Math.max(step, 1), 4);
   const steps = getSteps(statusId);
-  const isSuccessFinal = statusId === 41138695;
+  const normalizedTitle = (title || "").toLowerCase();
+  const isSuccessFinal =
+    statusId === 41138695 || normalizedTitle.includes("пропуск вышел");
   return (
     <section className="rounded-3xl bg-transparent p-0">
       <div className="flex flex-col gap-3">
