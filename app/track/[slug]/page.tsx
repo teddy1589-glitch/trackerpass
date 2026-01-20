@@ -31,6 +31,13 @@ function ensureObject(value: Record<string, unknown> | string | null | undefined
   return value;
 }
 
+function toDisplayValue(value: unknown) {
+  if (value instanceof Date) {
+    return value.toISOString().replace("T", " ").slice(0, 16);
+  }
+  return value as string | number | null | undefined;
+}
+
 function extractSlugFromPath(pathname?: string | null) {
   if (!pathname) {
     return null;
@@ -96,28 +103,43 @@ export default async function TrackPage({
 
         <div className="grid gap-6 lg:grid-cols-2">
           <InfoCard title="Автомобиль">
-            <FieldRow label="VIN" value={carInfo.vin as string} />
-            <FieldRow label="Марка / модель" value={carInfo.brand_model as string} />
+            <FieldRow label="VIN" value={toDisplayValue(carInfo.vin)} />
+            <FieldRow
+              label="Марка / модель"
+              value={toDisplayValue(carInfo.brand_model)}
+            />
           </InfoCard>
 
           <InfoCard title="Пропуск">
-            <FieldRow label="Срок действия" value={permitInfo.pass_expiry as string} />
-            <FieldRow label="Зона" value={permitInfo.zone as string} />
-            <FieldRow label="Тип пропуска" value={permitInfo.pass_type as string} />
-            <FieldRow label="Выход пропуска" value={permitInfo.ready_at as string} />
+            <FieldRow
+              label="Срок действия"
+              value={toDisplayValue(permitInfo.pass_expiry)}
+            />
+            <FieldRow label="Зона" value={toDisplayValue(permitInfo.zone)} />
+            <FieldRow
+              label="Тип пропуска"
+              value={toDisplayValue(permitInfo.pass_type)}
+            />
+            <FieldRow
+              label="Выход пропуска"
+              value={toDisplayValue(permitInfo.ready_at)}
+            />
           </InfoCard>
 
           <InfoCard title="Диагностическая карта">
-            <FieldRow label="Номер" value={carInfo.diagnostic_card as string} />
+            <FieldRow
+              label="Номер"
+              value={toDisplayValue(carInfo.diagnostic_card)}
+            />
             <FieldRow
               label="Действует до"
-              value={carInfo.diagnostic_card_valid_until as string}
+              value={toDisplayValue(carInfo.diagnostic_card_valid_until)}
             />
           </InfoCard>
 
           <InfoCard title="Менеджер">
-            <FieldRow label="Имя" value={managerInfo.name as string} />
-            <FieldRow label="ID" value={managerInfo.id as string} />
+            <FieldRow label="Имя" value={toDisplayValue(managerInfo.name)} />
+            <FieldRow label="ID" value={toDisplayValue(managerInfo.id)} />
           </InfoCard>
         </div>
 
