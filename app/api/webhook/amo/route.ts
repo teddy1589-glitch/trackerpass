@@ -148,6 +148,10 @@ async function processLead(leadId: number): Promise<void> {
 
   if (carInfo.brand_model && !carInfo.image_url) {
     try {
+      console.log("Webhook: generating image", {
+        lead_id: lead.id,
+        model: carInfo.brand_model,
+      });
       const imageUrl = await generateCarImage(String(carInfo.brand_model));
       carInfo.image_url = imageUrl;
       await upsertOrder({
@@ -160,7 +164,8 @@ async function processLead(leadId: number): Promise<void> {
       });
       console.log("Webhook: image generated", imageUrl);
     } catch (error) {
-      console.error("Webhook: image generation failed", error);
+      const err = error instanceof Error ? error.message : String(error);
+      console.warn("Webhook: image generation failed", err);
     }
   }
 
