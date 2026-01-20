@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { BrandHeader } from "@/components/tracker/BrandHeader";
 import { StatusCard } from "@/components/tracker/StatusCard";
@@ -30,15 +31,51 @@ function ensureObject(value: Record<string, unknown> | string | null | undefined
   return value;
 }
 
+function extractSlugFromPath(pathname?: string | null) {
+  if (!pathname) {
+    return null;
+  }
+  const clean = pathname.split("?")[0];
+  const marker = "/track/";
+  const index = clean.indexOf(marker);
+  if (index === -1) {
+    return null;
+  }
+  const slug = clean.slice(index + marker.length);
+  return slug || null;
+}
+
+function getSlugFromHeaders() {
+  const requestHeaders = headers();
+  const candidates = [
+    requestHeaders.get("x-nextjs-pathname"),
+    requestHeaders.get("x-invoke-path"),
+    requestHeaders.get("x-forwarded-uri"),
+    requestHeaders.get("x-original-url"),
+    requestHeaders.get("x-rewrite-url"),
+  ];
+  for (const candidate of candidates) {
+    const slug = extractSlugFromPath(candidate);
+    if (slug) {
+      return slug;
+    }
+  }
+  return null;
+}
+
 export default async function TrackPage({
   params,
 }: {
   params: { slug?: string };
 }) {
   console.log("TrackPage params:", params);
-  const slug = params?.slug;
+  const slug = params?.slug ?? getSlugFromHeaders();
   if (!slug) {
     console.warn("TrackPage missing slug");
+    console.log(
+      "TrackPage headers:",
+      Object.fromEntries(headers().entries()),
+    );
     notFound();
   }
 
