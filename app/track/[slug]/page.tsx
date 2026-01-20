@@ -45,8 +45,8 @@ function extractSlugFromPath(pathname?: string | null) {
   return slug || null;
 }
 
-function getSlugFromHeaders() {
-  const requestHeaders = headers();
+async function getSlugFromHeaders() {
+  const requestHeaders = await headers();
   const candidates = [
     requestHeaders.get("x-nextjs-pathname"),
     requestHeaders.get("x-invoke-path"),
@@ -69,12 +69,12 @@ export default async function TrackPage({
   params: { slug?: string };
 }) {
   console.log("TrackPage params:", params);
-  const slug = params?.slug ?? getSlugFromHeaders();
+  const slug = params?.slug ?? (await getSlugFromHeaders());
   if (!slug) {
     console.warn("TrackPage missing slug");
     console.log(
       "TrackPage headers:",
-      Object.fromEntries(headers().entries()),
+      Object.fromEntries((await headers()).entries()),
     );
     notFound();
   }
