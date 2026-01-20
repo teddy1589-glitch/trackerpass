@@ -102,13 +102,47 @@ export default async function TrackPage({
         />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <InfoCard title="Автомобиль">
-            <FieldRow label="VIN" value={toDisplayValue(carInfo.vin)} />
-            <FieldRow
-              label="Марка / модель"
-              value={toDisplayValue(carInfo.brand_model)}
-            />
-          </InfoCard>
+          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-premium backdrop-blur">
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-white">Автомобиль</h2>
+                {carInfo.image_url ? (
+                  <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-brand-muted">
+                    Фото
+                  </span>
+                ) : null}
+              </div>
+              {carInfo.image_url ? (
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/10">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={String(carInfo.image_url)}
+                    alt="Изображение автомобиля"
+                    className="h-56 w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-56 items-center justify-center rounded-2xl border border-dashed border-white/10 text-sm text-brand-muted">
+                  Фото автомобиля будет добавлено
+                </div>
+              )}
+              <div className="space-y-3 text-sm text-brand-muted">
+                <FieldRow label="VIN" value={toDisplayValue(carInfo.vin)} />
+                <FieldRow
+                  label="Марка / модель"
+                  value={toDisplayValue(carInfo.brand_model)}
+                />
+                <FieldRow
+                  label="Диагностическая карта"
+                  value={toDisplayValue(carInfo.diagnostic_card)}
+                />
+                <FieldRow
+                  label="Действует до"
+                  value={toDisplayValue(carInfo.diagnostic_card_valid_until)}
+                />
+              </div>
+            </div>
+          </section>
 
           <InfoCard title="Пропуск">
             <FieldRow
@@ -123,17 +157,6 @@ export default async function TrackPage({
             <FieldRow
               label="Выход пропуска"
               value={toDisplayValue(permitInfo.ready_at)}
-            />
-          </InfoCard>
-
-          <InfoCard title="Диагностическая карта">
-            <FieldRow
-              label="Номер"
-              value={toDisplayValue(carInfo.diagnostic_card)}
-            />
-            <FieldRow
-              label="Действует до"
-              value={toDisplayValue(carInfo.diagnostic_card_valid_until)}
             />
           </InfoCard>
 

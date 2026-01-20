@@ -13,6 +13,8 @@ export default function TrackDemoPage() {
       brand_model: "Volkswagen Transporter T6",
       diagnostic_card: "DC-9081-772",
       diagnostic_card_valid_until: "2026-11-15",
+      image_url:
+        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=80",
     },
     permit_info: {
       pass_expiry: "2026-02-28",

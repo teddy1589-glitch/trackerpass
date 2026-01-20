@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AmoCRMClient } from "@/lib/amocrm";
 import { getOrderByLeadId, upsertOrder } from "@/lib/db";
 import { calcPermitReadyAt, resolvePermitType } from "@/lib/deadline";
+import { generateCarImage } from "@/lib/openai";
 
 interface AmoWebhookEvent {
   leads?: {
@@ -144,6 +145,24 @@ async function processLead(leadId: number): Promise<void> {
       2,
     ),
   );
+
+  if (carInfo.brand_model && !carInfo.image_url) {
+    try {
+      const imageUrl = await generateCarImage(String(carInfo.brand_model));
+      carInfo.image_url = imageUrl;
+      await upsertOrder({
+        amo_lead_id: lead.id,
+        status_id: lead.status_id,
+        status_label: lead.name,
+        car_info: carInfo,
+        permit_info: permitInfo,
+        manager_contact: managerContact,
+      });
+      console.log("Webhook: image generated", imageUrl);
+    } catch (error) {
+      console.error("Webhook: image generation failed", error);
+    }
+  }
 
   if (shouldCreateLink && saved?.hash_slug && !hasExistingSlug) {
     const base = process.env.TRACK_BASE_URL ?? "http://89.44.86.30:3000/track";

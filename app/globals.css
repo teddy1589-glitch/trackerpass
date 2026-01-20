@@ -1,9 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020617;
-  --foreground: #e2e8f0;
-  --brand: #5b7cff;
+  --background: #05070f;
+  --foreground: #eef2ff;
+  --brand: #6c7dff;
+  --brand-red: #ff4d5a;
+  --brand-purple: #9c6bff;
+  --brand-blue: #3b82f6;
   --brand-muted: rgba(226, 232, 240, 0.7);
   --card-shadow: 0 28px 60px rgba(15, 23, 42, 0.45);
   --accent-success: #10b981;
@@ -29,7 +32,12 @@ body {
 }
 
 .bg-brand-gradient {
-  background: linear-gradient(135deg, #4f46e5, #3b82f6 45%, #22c55e);
+  background: linear-gradient(
+    135deg,
+    var(--brand-red),
+    var(--brand-purple) 45%,
+    var(--brand-blue)
+  );
 }
 
 .shadow-premium {
