@@ -147,28 +147,55 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Empty payload" }, { status: 200 });
     }
 
+    console.log("Webhook content-type:", contentType);
+    console.log("Webhook raw body (first 500):", rawBody.slice(0, 500));
+
     let payload: AmoWebhookEvent | null = null;
 
     if (contentType.includes("application/json")) {
       payload = JSON.parse(rawBody) as AmoWebhookEvent;
-    } else if (contentType.includes("application/x-www-form-urlencoded")) {
-      const params = new URLSearchParams(rawBody);
-      const addId = params.get("leads[add][0][id]");
-      const updateId = params.get("leads[update][0][id]");
+    } else if (
+      contentType.includes("application/x-www-form-urlencoded") ||
+      contentType.includes("multipart/form-data")
+    ) {
+      const leadIds: number[] = [];
+      try {
+        const params = new URLSearchParams(rawBody);
+        const addId = params.get("leads[add][0][id]");
+        const updateId = params.get("leads[update][0][id]");
+        if (addId) leadIds.push(Number(addId));
+        if (updateId) leadIds.push(Number(updateId));
+      } catch {
+        // ignore, fallback to regex below
+      }
+
+      const addRegex = /leads\[add]\[\d+]\[id]\D+(\d+)/g;
+      const updateRegex = /leads\[update]\[\d+]\[id]\D+(\d+)/g;
+      let match: RegExpExecArray | null;
+      while ((match = addRegex.exec(rawBody)) !== null) {
+        leadIds.push(Number(match[1]));
+      }
+      while ((match = updateRegex.exec(rawBody)) !== null) {
+        leadIds.push(Number(match[1]));
+      }
 
       payload = { leads: { add: [], update: [] } };
-      if (addId) {
-        payload.leads!.add!.push({ id: Number(addId) });
-      }
-      if (updateId) {
-        payload.leads!.update!.push({ id: Number(updateId) });
+      const uniqueIds = Array.from(new Set(leadIds)).filter(
+        (id) => Number.isFinite(id),
+      );
+      for (const id of uniqueIds) {
+        payload.leads!.update!.push({ id });
       }
     } else {
-      console.warn("Webhook received unsupported content-type:", contentType);
-      return NextResponse.json(
-        { message: "Ignored unsupported payload" },
-        { status: 200 },
-      );
+      // Fallback: try JSON anyway, then regex
+      try {
+        payload = JSON.parse(rawBody) as AmoWebhookEvent;
+      } catch {
+        const ids = rawBody.match(/\d{5,}/g) ?? [];
+        if (ids.length > 0) {
+          payload = { leads: { update: ids.map((id) => ({ id: Number(id) })) } };
+        }
+      }
     }
 
     if (!payload) {
