@@ -65,6 +65,7 @@ export default async function TrackPage({
             <FieldRow label="Срок действия" value={permitInfo.pass_expiry as string} />
             <FieldRow label="Зона" value={permitInfo.zone as string} />
             <FieldRow label="Тип пропуска" value={permitInfo.pass_type as string} />
+            <FieldRow label="Выход пропуска" value={permitInfo.ready_at as string} />
           </InfoCard>
 
           <InfoCard title="Диагностическая карта">

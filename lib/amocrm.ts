@@ -29,6 +29,7 @@ interface AmoLead {
   name: string;
   status_id: number;
   responsible_user_id: number;
+  updated_at?: number;
   custom_fields_values?: Array<{
     field_id: number;
     field_name: string;

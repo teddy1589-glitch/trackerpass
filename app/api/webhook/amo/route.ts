@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AmoCRMClient } from "@/lib/amocrm";
 import { upsertOrder } from "@/lib/db";
+import { calcPermitReadyAt, resolvePermitType } from "@/lib/deadline";
 
 interface AmoWebhookEvent {
   leads?: {
@@ -36,8 +37,8 @@ function mapCustomFields(
       continue;
     }
     switch (field.field_id) {
-      case 1043841: // Срок действия пропуска
-        permitInfo.pass_expiry = value;
+      case 1043841: // Тип пропуска (Временный / 6 месяцев / 12 месяцев)
+        permitInfo.pass_type = value;
         break;
       case 744115: // Зона
         permitInfo.zone = value;
@@ -77,6 +78,17 @@ async function processLead(leadId: number): Promise<void> {
 
   const { carInfo, permitInfo } = mapCustomFields(lead.custom_fields_values);
 
+  if (lead.status_id === 41138692) {
+    const type = resolvePermitType(permitInfo.pass_type as string);
+    if (type) {
+      const submittedAt = new Date(
+        (lead.updated_at ?? Date.now() / 1000) * 1000,
+      );
+      const { readyAtMsk } = await calcPermitReadyAt(submittedAt, type);
+      permitInfo.ready_at = readyAtMsk;
+    }
+  }
+
   console.log(
     "Webhook: fetched lead (filtered)",
     JSON.stringify(
@@ -87,6 +99,7 @@ async function processLead(leadId: number): Promise<void> {
         responsible_user_id: lead.responsible_user_id,
         car_info: carInfo,
         permit_info: permitInfo,
+        ready_at: permitInfo.ready_at ?? null,
       },
       null,
       2,

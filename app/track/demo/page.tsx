@@ -18,6 +18,7 @@ export default function TrackDemoPage() {
       pass_expiry: "2026-02-28",
       zone: "СК",
       pass_type: "Грузовой",
+      ready_at: "2026-01-24 16:00 (МСК)",
     },
     manager_contact: {
       name: "Андрей Смирнов",
