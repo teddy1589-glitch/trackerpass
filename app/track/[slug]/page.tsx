@@ -89,6 +89,9 @@ export default async function TrackPage({
   const carInfo = ensureObject(order.car_info);
   const permitInfo = ensureObject(order.permit_info);
   const managerInfo = ensureObject(order.manager_contact);
+  const hasDiagnosticCard = Boolean(
+    carInfo.diagnostic_card || carInfo.diagnostic_card_valid_until,
+  );
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,59,79,0.12),_transparent_40%),_radial-gradient(circle_at_right,_rgba(154,89,255,0.12),_transparent_45%),_radial-gradient(circle_at_left,_rgba(47,107,255,0.12),_transparent_45%)] px-4 py-10 text-slate-900">
@@ -134,14 +137,18 @@ export default async function TrackPage({
                   label="Марка / модель"
                   value={toDisplayValue(carInfo.brand_model)}
                 />
-                <FieldRow
-                  label="Диагностическая карта"
-                  value={toDisplayValue(carInfo.diagnostic_card)}
-                />
-                <FieldRow
-                  label="Действует до"
-                  value={toDisplayValue(carInfo.diagnostic_card_valid_until)}
-                />
+                {hasDiagnosticCard ? (
+                  <>
+                    <FieldRow
+                      label="Диагностическая карта"
+                      value={toDisplayValue(carInfo.diagnostic_card)}
+                    />
+                    <FieldRow
+                      label="Действует до"
+                      value={toDisplayValue(carInfo.diagnostic_card_valid_until)}
+                    />
+                  </>
+                ) : null}
               </div>
             </div>
           </section>
