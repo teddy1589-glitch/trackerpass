@@ -161,21 +161,27 @@ export async function POST(request: NextRequest) {
       const leadIds: number[] = [];
       try {
         const params = new URLSearchParams(rawBody);
-        const addId = params.get("leads[add][0][id]");
-        const updateId = params.get("leads[update][0][id]");
+      const addId = params.get("leads[add][0][id]");
+      const updateId = params.get("leads[update][0][id]");
+      const statusId = params.get("leads[status][0][id]");
         if (addId) leadIds.push(Number(addId));
         if (updateId) leadIds.push(Number(updateId));
+      if (statusId) leadIds.push(Number(statusId));
       } catch {
         // ignore, fallback to regex below
       }
 
       const addRegex = /leads\[add]\[\d+]\[id]\D+(\d+)/g;
       const updateRegex = /leads\[update]\[\d+]\[id]\D+(\d+)/g;
+      const statusRegex = /leads\[status]\[\d+]\[id]\D+(\d+)/g;
       let match: RegExpExecArray | null;
       while ((match = addRegex.exec(rawBody)) !== null) {
         leadIds.push(Number(match[1]));
       }
       while ((match = updateRegex.exec(rawBody)) !== null) {
+        leadIds.push(Number(match[1]));
+      }
+      while ((match = statusRegex.exec(rawBody)) !== null) {
         leadIds.push(Number(match[1]));
       }
 
