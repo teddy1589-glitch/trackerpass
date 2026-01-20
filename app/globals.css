@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #05070f;
-  --foreground: #eef2ff;
-  --brand: #6c7dff;
-  --brand-red: #ff4d5a;
-  --brand-purple: #9c6bff;
-  --brand-blue: #3b82f6;
-  --brand-muted: rgba(226, 232, 240, 0.7);
-  --card-shadow: 0 28px 60px rgba(15, 23, 42, 0.45);
+  --background: #f7f8fc;
+  --foreground: #111827;
+  --brand: #5b6cff;
+  --brand-red: #ff3b4f;
+  --brand-purple: #9a59ff;
+  --brand-blue: #2f6bff;
+  --brand-muted: #64748b;
+  --card-shadow: 0 28px 60px rgba(15, 23, 42, 0.08);
   --accent-success: #10b981;
   --accent-pending: #f59e0b;
 }

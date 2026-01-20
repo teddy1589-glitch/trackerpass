@@ -91,7 +91,7 @@ export default async function TrackPage({
   const managerInfo = ensureObject(order.manager_contact);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_45%),_radial-gradient(circle_at_right,_rgba(59,130,246,0.25),_transparent_40%),_radial-gradient(circle_at_left,_rgba(16,185,129,0.18),_transparent_45%)] px-4 py-10 text-white">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,59,79,0.12),_transparent_40%),_radial-gradient(circle_at_right,_rgba(154,89,255,0.12),_transparent_45%),_radial-gradient(circle_at_left,_rgba(47,107,255,0.12),_transparent_45%)] px-4 py-10 text-slate-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <BrandHeader />
 
@@ -102,18 +102,20 @@ export default async function TrackPage({
         />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-premium backdrop-blur">
+          <section className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-premium">
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-white">Автомобиль</h2>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Автомобиль
+                </h2>
                 {carInfo.image_url ? (
-                  <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-brand-muted">
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-500">
                     Фото
                   </span>
                 ) : null}
               </div>
               {carInfo.image_url ? (
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/10">
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={String(carInfo.image_url)}
@@ -122,11 +124,11 @@ export default async function TrackPage({
                   />
                 </div>
               ) : (
-                <div className="flex h-56 items-center justify-center rounded-2xl border border-dashed border-white/10 text-sm text-brand-muted">
+                <div className="flex h-56 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-500">
                   Фото автомобиля будет добавлено
                 </div>
               )}
-              <div className="space-y-3 text-sm text-brand-muted">
+              <div className="space-y-3 text-sm text-slate-600">
                 <FieldRow label="VIN" value={toDisplayValue(carInfo.vin)} />
                 <FieldRow
                   label="Марка / модель"
@@ -166,8 +168,8 @@ export default async function TrackPage({
           </InfoCard>
         </div>
 
-        <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-xs uppercase tracking-[0.2em] text-brand-muted">
-          <span>RTE-Consult</span>
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-4 text-xs uppercase tracking-[0.2em] text-slate-500">
+          <span className="text-slate-600">RTE-Consult</span>
           <span>Обновлено: {toDisplayValue(order.updated_at) ?? "—"}</span>
         </div>
       </div>

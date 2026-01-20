@@ -8,16 +8,16 @@ interface InfoCardProps {
 
 export function InfoCard({ title, icon, children }: InfoCardProps) {
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-premium backdrop-blur">
+    <section className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-premium">
       <div className="mb-4 flex items-center gap-3">
         {icon ? (
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white">
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
             {icon}
           </span>
         ) : null}
-        <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
       </div>
-      <div className="space-y-3 text-sm text-brand-muted">{children}</div>
+      <div className="space-y-3 text-sm text-slate-600">{children}</div>
     </section>
   );
 }

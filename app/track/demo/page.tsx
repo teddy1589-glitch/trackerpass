@@ -32,7 +32,7 @@ export default function TrackDemoPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_45%),_radial-gradient(circle_at_right,_rgba(59,130,246,0.25),_transparent_40%),_radial-gradient(circle_at_left,_rgba(16,185,129,0.18),_transparent_45%)] px-4 py-10 text-white">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,59,79,0.12),_transparent_40%),_radial-gradient(circle_at_right,_rgba(154,89,255,0.12),_transparent_45%),_radial-gradient(circle_at_left,_rgba(47,107,255,0.12),_transparent_45%)] px-4 py-10 text-slate-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <BrandHeader />
 
