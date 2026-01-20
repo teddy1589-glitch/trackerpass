@@ -86,7 +86,7 @@ export function resolvePermitType(value: string | number | null | undefined) {
     return null;
   }
   const normalized = String(value).trim().toLowerCase();
-  if (normalized === "временный") {
+  if (normalized === "временный" || normalized === "день") {
     return "temporary";
   }
   if (normalized === "6 месяцев" || normalized === "12 месяцев") {
