@@ -41,6 +41,80 @@ function toDisplayValue(value: unknown) {
   return value as string | number | null | undefined;
 }
 
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  }
+  if (typeof value === "number") {
+    return String(value);
+  }
+  return null;
+}
+
+function parsePermitDate(value: string | null): Date | null {
+  if (!value) {
+    return null;
+  }
+  const [datePart, timePart] = value.trim().split(" ");
+  const [day, month, year] = datePart.split(".").map(Number);
+  if (!day || !month || !year) {
+    return null;
+  }
+  let hours = 0;
+  let minutes = 0;
+  if (timePart) {
+    const [hh, mm] = timePart.split(":").map(Number);
+    hours = Number.isFinite(hh) ? hh : 0;
+    minutes = Number.isFinite(mm) ? mm : 0;
+  }
+  return new Date(year, month - 1, day, hours, minutes);
+}
+
+function normalizeDate(value: Date): Date {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+}
+
+function buildPermitValidity(
+  startValue: string | null,
+  endValue: string | null,
+) {
+  if (!startValue && !endValue) {
+    return { text: null, className: undefined };
+  }
+  const startLabel = startValue ?? "—";
+  const endLabel = endValue ?? "—";
+  let suffix = "";
+  let isExpired = false;
+  const startDate = parsePermitDate(startValue);
+  const endDate = parsePermitDate(endValue);
+  if (startDate && endDate) {
+    const startNorm = normalizeDate(startDate);
+    const endNorm = normalizeDate(endDate);
+    const diffDays =
+      Math.floor((endNorm.getTime() - startNorm.getTime()) / 86_400_000) + 1;
+    if (diffDays > 0) {
+      suffix = ` (${diffDays} дн.)`;
+    }
+    const today = normalizeDate(new Date());
+    if (endNorm.getTime() < today.getTime()) {
+      isExpired = true;
+      suffix = " (Пропуск закончился)";
+    }
+  } else if (endDate) {
+    const endNorm = normalizeDate(endDate);
+    const today = normalizeDate(new Date());
+    if (endNorm.getTime() < today.getTime()) {
+      isExpired = true;
+      suffix = " (Пропуск закончился)";
+    }
+  }
+  return {
+    text: `${startLabel} - ${endLabel}${suffix}`.trim(),
+    className: isExpired ? "text-rose-600" : undefined,
+  };
+}
+
 function extractSlugFromPath(pathname?: string | null) {
   if (!pathname) {
     return null;
@@ -95,6 +169,9 @@ export default async function TrackPage({
   const hasDiagnosticCard = Boolean(
     carInfo.diagnostic_card || carInfo.diagnostic_card_valid_until,
   );
+  const passStart = asString(permitInfo.pass_start_date);
+  const passEnd = asString(permitInfo.pass_validity_date ?? permitInfo.pass_expiry);
+  const passValidity = buildPermitValidity(passStart, passEnd);
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
@@ -170,11 +247,8 @@ export default async function TrackPage({
             ) : null}
             <FieldRow
               label="Срок действия"
-              value={toDisplayValue(
-                permitInfo.pass_start_date || permitInfo.pass_validity_date || permitInfo.pass_expiry
-                  ? `${permitInfo.pass_start_date ?? "—"} - ${permitInfo.pass_validity_date ?? permitInfo.pass_expiry ?? "—"}`
-                  : null,
-              )}
+              value={passValidity.text}
+              valueClassName={passValidity.className}
             />
             <FieldRow
               label="Серия и номер"
