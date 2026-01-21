@@ -126,7 +126,7 @@ export default async function TrackPage({
                   <img
                     src={String(carInfo.image_url)}
                     alt="Изображение автомобиля"
-                    className="h-56 w-full object-cover"
+                    className="h-56 w-full object-contain"
                   />
                 </div>
               ) : (
