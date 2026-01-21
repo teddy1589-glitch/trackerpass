@@ -163,12 +163,12 @@ export default async function TrackPage({
               value={toDisplayValue(permitInfo.pass_expiry)}
             />
             <FieldRow
-              label="Серия пропуска"
-              value={toDisplayValue(permitInfo.pass_series ?? permitInfo.series)}
-            />
-            <FieldRow
-              label="Номер пропуска"
-              value={toDisplayValue(permitInfo.pass_number ?? permitInfo.number)}
+              label="Серия и номер"
+              value={toDisplayValue(
+                permitInfo.pass_series || permitInfo.series || permitInfo.pass_number || permitInfo.number
+                  ? `${permitInfo.pass_series ?? permitInfo.series ?? ""}${permitInfo.pass_series || permitInfo.series ? " " : ""}${permitInfo.pass_number ?? permitInfo.number ?? ""}`.trim()
+                  : null,
+              )}
             />
             <FieldRow label="Зона" value={toDisplayValue(permitInfo.zone)} />
             <FieldRow
