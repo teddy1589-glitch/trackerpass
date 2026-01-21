@@ -81,10 +81,16 @@ async function processLead(leadId: number): Promise<void> {
 
   const shouldCreateLink =
     lead.status_id === 41138302 || lead.status_id === 41138689;
-  const existingOrder = shouldCreateLink
-    ? await getOrderByLeadId(lead.id)
-    : null;
+  const existingOrder = await getOrderByLeadId(lead.id);
   const hasExistingSlug = Boolean(existingOrder?.hash_slug);
+  const existingCarInfo =
+    typeof existingOrder?.car_info === "string"
+      ? JSON.parse(existingOrder.car_info)
+      : (existingOrder?.car_info ?? {});
+  const existingImageUrl =
+    typeof existingCarInfo === "object" && existingCarInfo
+      ? (existingCarInfo as { image_url?: string }).image_url
+      : null;
 
   if (lead.status_id === 41138692) {
     const type = resolvePermitType(permitInfo.pass_type as string);
@@ -146,7 +152,10 @@ async function processLead(leadId: number): Promise<void> {
     ),
   );
 
-  if (carInfo.brand_model && !carInfo.image_url) {
+  const shouldGenerateImage = Boolean(
+    carInfo.brand_model && !carInfo.image_url && !existingImageUrl,
+  );
+  if (shouldGenerateImage) {
     try {
       console.log("Webhook: generating image", {
         lead_id: lead.id,
@@ -167,6 +176,13 @@ async function processLead(leadId: number): Promise<void> {
       const err = error instanceof Error ? error.message : String(error);
       console.warn("Webhook: image generation failed", err);
     }
+  } else {
+    console.log("Webhook: skipping image generation", {
+      lead_id: lead.id,
+      has_model: Boolean(carInfo.brand_model),
+      payload_image: Boolean(carInfo.image_url),
+      stored_image: Boolean(existingImageUrl),
+    });
   }
 
   if (shouldCreateLink && saved?.hash_slug && !hasExistingSlug) {
