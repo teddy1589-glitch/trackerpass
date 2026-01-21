@@ -4,11 +4,14 @@ interface InfoCardProps {
   title: string;
   icon?: ReactNode;
   children: ReactNode;
+  className?: string;
 }
 
-export function InfoCard({ title, icon, children }: InfoCardProps) {
+export function InfoCard({ title, icon, children, className }: InfoCardProps) {
   return (
-    <section className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-premium">
+    <section
+      className={`rounded-3xl border border-slate-200/80 bg-white p-6 shadow-premium ${className ?? ""}`}
+    >
       <div className="mb-4 flex items-center gap-3">
         {icon ? (
           <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">

@@ -80,7 +80,12 @@ function buildPermitValidity(
   endValue: string | null,
 ) {
   if (!startValue && !endValue) {
-    return { dateText: null, daysText: null, daysClassName: undefined };
+    return {
+      dateText: null,
+      daysText: null,
+      daysClassName: undefined,
+      status: "unknown",
+    };
   }
   const startLabel = startValue ?? "—";
   const endLabel = endValue ?? "—";
@@ -89,6 +94,7 @@ function buildPermitValidity(
   const today = normalizeDate(new Date());
   let daysText: string | null = null;
   let daysClassName: string | undefined;
+  let status: "active" | "expired" | "unknown" = "unknown";
   if (startDate && endDate) {
     const startNorm = normalizeDate(startDate);
     const endNorm = normalizeDate(endDate);
@@ -99,13 +105,16 @@ function buildPermitValidity(
     if (endNorm.getTime() < today.getTime()) {
       daysText = "Пропуск закончился";
       daysClassName = "text-rose-600";
+      status = "expired";
     } else if (remainingDays > 0) {
       daysText = `Осталось ${remainingDays} дн.`;
       daysClassName = "text-emerald-600";
+      status = "active";
     }
     if (!daysText && totalDays > 0) {
       daysText = `Действует ${totalDays} дн.`;
       daysClassName = "text-emerald-600";
+      status = "active";
     }
   } else if (endDate) {
     const endNorm = normalizeDate(endDate);
@@ -114,15 +123,18 @@ function buildPermitValidity(
     if (endNorm.getTime() < today.getTime()) {
       daysText = "Пропуск закончился";
       daysClassName = "text-rose-600";
+      status = "expired";
     } else if (remainingDays > 0) {
       daysText = `Осталось ${remainingDays} дн.`;
       daysClassName = "text-emerald-600";
+      status = "active";
     }
   }
   return {
     dateText: `${startLabel} - ${endLabel}`.trim(),
     daysText,
     daysClassName,
+    status,
   };
 }
 
@@ -183,6 +195,12 @@ export default async function TrackPage({
   const passStart = asString(permitInfo.pass_start_date);
   const passEnd = asString(permitInfo.pass_validity_date ?? permitInfo.pass_expiry);
   const passValidity = buildPermitValidity(passStart, passEnd);
+  const permitCardClass =
+    passValidity.status === "active"
+      ? "border-emerald-300"
+      : passValidity.status === "expired"
+        ? "border-rose-300"
+        : "border-transparent";
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
@@ -245,7 +263,7 @@ export default async function TrackPage({
             </div>
           </section>
 
-          <InfoCard title="Пропуск">
+          <InfoCard title="Пропуск" className={permitCardClass}>
             {permitInfo.pass_check_status === "checking" ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
                 Проверяем пропуск в реестре...
