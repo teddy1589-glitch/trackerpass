@@ -80,38 +80,49 @@ function buildPermitValidity(
   endValue: string | null,
 ) {
   if (!startValue && !endValue) {
-    return { text: null, className: undefined };
+    return { dateText: null, daysText: null, daysClassName: undefined };
   }
   const startLabel = startValue ?? "—";
   const endLabel = endValue ?? "—";
-  let suffix = "";
-  let isExpired = false;
   const startDate = parsePermitDate(startValue);
   const endDate = parsePermitDate(endValue);
+  const today = normalizeDate(new Date());
+  let daysText: string | null = null;
+  let daysClassName: string | undefined;
   if (startDate && endDate) {
     const startNorm = normalizeDate(startDate);
     const endNorm = normalizeDate(endDate);
-    const diffDays =
+    const totalDays =
       Math.floor((endNorm.getTime() - startNorm.getTime()) / 86_400_000) + 1;
-    if (diffDays > 0) {
-      suffix = ` (${diffDays} дн.)`;
-    }
-    const today = normalizeDate(new Date());
+    const remainingDays =
+      Math.floor((endNorm.getTime() - today.getTime()) / 86_400_000) + 1;
     if (endNorm.getTime() < today.getTime()) {
-      isExpired = true;
-      suffix = " (Пропуск закончился)";
+      daysText = "Пропуск закончился";
+      daysClassName = "text-rose-600";
+    } else if (remainingDays > 0) {
+      daysText = `Осталось ${remainingDays} дн.`;
+      daysClassName = "text-emerald-600";
+    }
+    if (!daysText && totalDays > 0) {
+      daysText = `Действует ${totalDays} дн.`;
+      daysClassName = "text-emerald-600";
     }
   } else if (endDate) {
     const endNorm = normalizeDate(endDate);
-    const today = normalizeDate(new Date());
+    const remainingDays =
+      Math.floor((endNorm.getTime() - today.getTime()) / 86_400_000) + 1;
     if (endNorm.getTime() < today.getTime()) {
-      isExpired = true;
-      suffix = " (Пропуск закончился)";
+      daysText = "Пропуск закончился";
+      daysClassName = "text-rose-600";
+    } else if (remainingDays > 0) {
+      daysText = `Осталось ${remainingDays} дн.`;
+      daysClassName = "text-emerald-600";
     }
   }
   return {
-    text: `${startLabel} - ${endLabel}${suffix}`.trim(),
-    className: isExpired ? "text-rose-600" : undefined,
+    dateText: `${startLabel} - ${endLabel}`.trim(),
+    daysText,
+    daysClassName,
   };
 }
 
@@ -247,8 +258,18 @@ export default async function TrackPage({
             ) : null}
             <FieldRow
               label="Срок действия"
-              value={passValidity.text}
-              valueClassName={passValidity.className}
+              value={
+                passValidity.dateText ? (
+                  <div className="flex flex-col items-end gap-1">
+                    <span>{passValidity.dateText}</span>
+                    {passValidity.daysText ? (
+                      <span className={passValidity.daysClassName}>
+                        {passValidity.daysText}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null
+              }
             />
             <FieldRow
               label="Серия и номер"
