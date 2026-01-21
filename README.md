@@ -34,3 +34,11 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Image Proxy Environment
+
+- `IMAGE_PROXY_BASE_URL` — base URL of the image proxy (e.g. `http://104.128.138.195:8000`)
+- `PUBLIC_BASE_URL` — base URL of this app (e.g. `https://yourdomain.com`)
+- `IMAGE_UPLOAD_DIR` — local path for saved images (default: `public/uploads`)
+- `IMAGE_PROXY_POLL_INTERVAL_MS` — polling interval in ms (default: `3000`)
+- `IMAGE_PROXY_POLL_TIMEOUT_MS` — polling timeout in ms (default: `60000`)
