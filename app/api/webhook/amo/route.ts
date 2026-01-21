@@ -91,6 +91,13 @@ async function processLead(leadId: number): Promise<void> {
     typeof existingCarInfo === "object" && existingCarInfo
       ? (existingCarInfo as { image_url?: string }).image_url
       : null;
+  if (!carInfo.image_url && existingImageUrl) {
+    carInfo.image_url = existingImageUrl;
+    console.log("Webhook: reused stored image", {
+      lead_id: lead.id,
+      image_url: existingImageUrl,
+    });
+  }
 
   if (lead.status_id === 41138692) {
     const type = resolvePermitType(permitInfo.pass_type as string);
