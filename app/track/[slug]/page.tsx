@@ -6,6 +6,9 @@ import { InfoCard } from "@/components/tracker/InfoCard";
 import { FieldRow } from "@/components/tracker/FieldRow";
 import { getOrderBySlug } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface OrderRow {
   status_id?: number | null;
   status_step?: number | null;
