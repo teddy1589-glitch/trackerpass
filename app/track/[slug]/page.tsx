@@ -120,38 +120,42 @@ export default async function TrackPage({
                   </span>
                 ) : null}
               </div>
-              {carInfo.image_url ? (
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={String(carInfo.image_url)}
-                    alt="Изображение автомобиля"
-                    className="h-56 w-full object-contain"
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
+                <div className="flex items-center justify-center lg:justify-start">
+                  {carInfo.image_url ? (
+                    <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={String(carInfo.image_url)}
+                        alt="Изображение автомобиля"
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-48 w-48 items-center justify-center rounded-full border border-dashed border-slate-200 text-sm text-slate-500">
+                      Фото
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-3 text-sm text-slate-600">
+                  <FieldRow label="VIN" value={toDisplayValue(carInfo.vin)} />
+                  <FieldRow
+                    label="Марка / модель"
+                    value={toDisplayValue(carInfo.brand_model)}
                   />
+                  {hasDiagnosticCard ? (
+                    <>
+                      <FieldRow
+                        label="Диагностическая карта"
+                        value={toDisplayValue(carInfo.diagnostic_card)}
+                      />
+                      <FieldRow
+                        label="Действует до"
+                        value={toDisplayValue(carInfo.diagnostic_card_valid_until)}
+                      />
+                    </>
+                  ) : null}
                 </div>
-              ) : (
-                <div className="flex h-56 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-500">
-                  Фото автомобиля будет добавлено
-                </div>
-              )}
-              <div className="space-y-3 text-sm text-slate-600">
-                <FieldRow label="VIN" value={toDisplayValue(carInfo.vin)} />
-                <FieldRow
-                  label="Марка / модель"
-                  value={toDisplayValue(carInfo.brand_model)}
-                />
-                {hasDiagnosticCard ? (
-                  <>
-                    <FieldRow
-                      label="Диагностическая карта"
-                      value={toDisplayValue(carInfo.diagnostic_card)}
-                    />
-                    <FieldRow
-                      label="Действует до"
-                      value={toDisplayValue(carInfo.diagnostic_card_valid_until)}
-                    />
-                  </>
-                ) : null}
               </div>
             </div>
           </section>
