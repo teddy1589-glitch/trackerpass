@@ -97,7 +97,7 @@ export default async function TrackPage({
   );
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,59,79,0.12),_transparent_40%),_radial-gradient(circle_at_right,_rgba(154,89,255,0.12),_transparent_45%),_radial-gradient(circle_at_left,_rgba(47,107,255,0.12),_transparent_45%)] px-4 py-10 text-slate-900">
+    <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <BrandHeader />
 
@@ -107,23 +107,47 @@ export default async function TrackPage({
           statusId={order.status_id ?? null}
         />
 
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
+                  Текущий статус
+                </p>
+                <h2 className="text-2xl font-semibold text-slate-900">
+                  {order.status_label ?? "Статус формируется"}
+                </h2>
+              </div>
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-500">
+                <span>Обновлено</span>
+                <span>{toDisplayValue(order.updated_at) ?? "—"}</span>
+              </div>
+            </div>
+            <StatusCard
+              title={order.status_label ?? "Статус формируется"}
+              step={order.status_step ?? 1}
+              statusId={order.status_id ?? null}
+            />
+          </div>
+        </section>
+
         <div className="grid gap-6 lg:grid-cols-2">
-          <section className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-premium">
+          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">
+                <h3 className="text-lg font-semibold text-slate-900">
                   Автомобиль
-                </h2>
+                </h3>
                 {carInfo.image_url ? (
                   <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-500">
                     Фото
                   </span>
                 ) : null}
               </div>
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
-                <div className="flex items-center justify-center lg:justify-start">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+                <div className="flex items-center justify-center sm:justify-start">
                   {carInfo.image_url ? (
-                    <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white shadow-sm">
+                    <div className="flex h-44 w-44 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={String(carInfo.image_url)}
@@ -132,7 +156,7 @@ export default async function TrackPage({
                       />
                     </div>
                   ) : (
-                    <div className="flex h-48 w-48 items-center justify-center rounded-full border border-dashed border-slate-200 text-sm text-slate-500">
+                    <div className="flex h-44 w-44 items-center justify-center rounded-full border border-dashed border-slate-200 text-sm text-slate-500">
                       Фото
                     </div>
                   )}
@@ -182,9 +206,9 @@ export default async function TrackPage({
           </InfoCard>
         </div>
 
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-4 text-xs uppercase tracking-[0.2em] text-slate-500">
-          <span className="text-slate-600">RTE-Consult</span>
-          <span>Обновлено: {toDisplayValue(order.updated_at) ?? "—"}</span>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs uppercase tracking-[0.2em] text-slate-400">
+          <span className="text-slate-500">RTE-Consult</span>
+          <span>Данные обновляются автоматически</span>
         </div>
       </div>
     </main>
