@@ -171,12 +171,10 @@ export default async function TrackPage({
             <FieldRow
               label="Срок действия"
               value={toDisplayValue(
-                permitInfo.pass_validity_date ?? permitInfo.pass_expiry,
+                permitInfo.pass_start_date || permitInfo.pass_validity_date || permitInfo.pass_expiry
+                  ? `${permitInfo.pass_start_date ?? "—"} - ${permitInfo.pass_validity_date ?? permitInfo.pass_expiry ?? "—"}`
+                  : null,
               )}
-            />
-            <FieldRow
-              label="Начало действия"
-              value={toDisplayValue(permitInfo.pass_start_date)}
             />
             <FieldRow
               label="Серия и номер"
