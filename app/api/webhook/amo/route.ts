@@ -11,6 +11,78 @@ interface AmoWebhookEvent {
   };
 }
 
+type PassApiEntry = {
+  number?: string;
+  grz?: string;
+  startdate?: string;
+  validitydate?: string;
+  allowedzona?: string;
+  passstatus?: string;
+  tip?: string;
+  typepassvalidityperiod?: string;
+};
+
+type PassApiResponse = {
+  status?: number;
+  list?: PassApiEntry[];
+  error?: string;
+  message?: string;
+};
+
+const PASS_CHECK_API_TOKEN = process.env.PASS_CHECK_API_TOKEN;
+const PASS_CHECK_API_URL =
+  process.env.PASS_CHECK_API_URL ??
+  "https://api-cloud.ru/api/transportMos.php";
+const STATUS_PASS_RELEASED = 41138695;
+
+function parsePassDate(value?: string): number {
+  if (!value) {
+    return 0;
+  }
+  const [datePart, timePart] = value.trim().split(" ");
+  const [day, month, year] = datePart.split(".").map(Number);
+  if (!day || !month || !year) {
+    return 0;
+  }
+  let hours = 0;
+  let minutes = 0;
+  if (timePart) {
+    const [hh, mm] = timePart.split(":").map(Number);
+    hours = Number.isFinite(hh) ? hh : 0;
+    minutes = Number.isFinite(mm) ? mm : 0;
+  }
+  return new Date(year, month - 1, day, hours, minutes).getTime();
+}
+
+function selectPassInfo(list: PassApiEntry[] = []): PassApiEntry | null {
+  if (list.length === 0) {
+    return null;
+  }
+  const issued = list.filter(
+    (item) => item.passstatus?.toLowerCase() === "выдан",
+  );
+  const candidates = issued.length > 0 ? issued : list;
+  return candidates.sort(
+    (a, b) => parsePassDate(b.validitydate) - parsePassDate(a.validitydate),
+  )[0];
+}
+
+async function fetchPassInfo(regNumber: string): Promise<PassApiEntry | null> {
+  const url = `${PASS_CHECK_API_URL}?type=pass&regNumber=${encodeURIComponent(
+    regNumber,
+  )}&token=${PASS_CHECK_API_TOKEN}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Pass API error ${response.status}`);
+  }
+  const data = (await response.json()) as PassApiResponse;
+  if (data.error || data.status !== 200) {
+    const message = data.message ?? data.error ?? "Unknown pass API error";
+    throw new Error(message);
+  }
+  return selectPassInfo(data.list ?? []);
+}
+
 function extractLeadIds(event: AmoWebhookEvent): number[] {
   const ids: number[] = [];
   if (event.leads?.add) {
@@ -69,7 +141,10 @@ function mapCustomFields(
   return { carInfo, permitInfo };
 }
 
-async function processLead(leadId: number): Promise<void> {
+async function processLead(
+  leadId: number,
+  oldStatusId?: number,
+): Promise<void> {
   const client = new AmoCRMClient();
   const lead = await client.getLead(leadId);
   if (!lead) {
@@ -87,6 +162,10 @@ async function processLead(leadId: number): Promise<void> {
     typeof existingOrder?.car_info === "string"
       ? JSON.parse(existingOrder.car_info)
       : (existingOrder?.car_info ?? {});
+  const existingPermitInfo =
+    typeof existingOrder?.permit_info === "string"
+      ? JSON.parse(existingOrder.permit_info)
+      : (existingOrder?.permit_info ?? {});
   const existingImageUrl =
     typeof existingCarInfo === "object" && existingCarInfo
       ? (existingCarInfo as { image_url?: string }).image_url
@@ -96,6 +175,73 @@ async function processLead(leadId: number): Promise<void> {
     console.log("Webhook: reused stored image", {
       lead_id: lead.id,
       image_url: existingImageUrl,
+    });
+  }
+
+  const transitionedToPassReleased =
+    lead.status_id === STATUS_PASS_RELEASED &&
+    oldStatusId !== undefined &&
+    oldStatusId !== STATUS_PASS_RELEASED;
+  const existingPassNumber =
+    typeof existingPermitInfo === "object" && existingPermitInfo
+      ? (existingPermitInfo as { pass_number?: string }).pass_number
+      : null;
+  const existingPassValidity =
+    typeof existingPermitInfo === "object" && existingPermitInfo
+      ? (existingPermitInfo as { pass_validity_date?: string }).pass_validity_date
+      : null;
+  const hasPassData = Boolean(
+    permitInfo.pass_number ||
+      permitInfo.pass_validity_date ||
+      existingPassNumber ||
+      existingPassValidity,
+  );
+  if (transitionedToPassReleased && !hasPassData) {
+    try {
+      const regNumber = String(lead.name || "").trim();
+      if (!regNumber) {
+        console.warn("Webhook: missing regNumber for pass check", {
+          lead_id: lead.id,
+        });
+      } else if (!PASS_CHECK_API_TOKEN) {
+        console.warn("Webhook: PASS_CHECK_API_TOKEN is not set", {
+          lead_id: lead.id,
+        });
+      } else {
+        const passInfo = await fetchPassInfo(regNumber);
+        if (passInfo) {
+          permitInfo.pass_number = passInfo.number ?? null;
+          permitInfo.pass_start_date = passInfo.startdate ?? null;
+          permitInfo.pass_validity_date = passInfo.validitydate ?? null;
+          permitInfo.pass_expiry = passInfo.validitydate ?? null;
+          permitInfo.zone = passInfo.allowedzona ?? permitInfo.zone ?? null;
+          permitInfo.pass_type = passInfo.tip ?? permitInfo.pass_type ?? null;
+          permitInfo.pass_validity_period =
+            passInfo.typepassvalidityperiod ?? null;
+          permitInfo.pass_raw = passInfo;
+          console.log("Webhook: pass info saved", {
+            lead_id: lead.id,
+            number: passInfo.number,
+            zone: passInfo.allowedzona,
+          });
+        } else {
+          console.warn("Webhook: pass info not found", {
+            lead_id: lead.id,
+            reg_number: regNumber,
+          });
+        }
+      }
+    } catch (error) {
+      const err = error instanceof Error ? error.message : String(error);
+      console.warn("Webhook: pass check failed", err);
+    }
+  } else if (transitionedToPassReleased) {
+    console.log("Webhook: skipping pass check, data already set", {
+      lead_id: lead.id,
+      has_payload_pass: Boolean(
+        permitInfo.pass_number || permitInfo.pass_validity_date,
+      ),
+      has_stored_pass: Boolean(existingPassNumber || existingPassValidity),
     });
   }
 
@@ -215,9 +361,20 @@ export async function POST(request: NextRequest) {
     console.log("Webhook raw body (first 500):", rawBody.slice(0, 500));
 
     let payload: AmoWebhookEvent | null = null;
+    let statusLeadId: number | null = null;
+    let oldStatusId: number | null = null;
 
     if (contentType.includes("application/json")) {
       payload = JSON.parse(rawBody) as AmoWebhookEvent;
+      const statusBlock =
+        (payload as { leads?: { status?: Array<{ id?: number; old_status_id?: number }> } })
+          ?.leads?.status?.[0] ?? null;
+      if (statusBlock?.id) {
+        statusLeadId = Number(statusBlock.id);
+      }
+      if (statusBlock?.old_status_id) {
+        oldStatusId = Number(statusBlock.old_status_id);
+      }
     } else if (
       contentType.includes("application/x-www-form-urlencoded") ||
       contentType.includes("multipart/form-data")
@@ -225,12 +382,19 @@ export async function POST(request: NextRequest) {
       const leadIds: number[] = [];
       try {
         const params = new URLSearchParams(rawBody);
-      const addId = params.get("leads[add][0][id]");
-      const updateId = params.get("leads[update][0][id]");
-      const statusId = params.get("leads[status][0][id]");
+        const addId = params.get("leads[add][0][id]");
+        const updateId = params.get("leads[update][0][id]");
+        const statusId = params.get("leads[status][0][id]");
+        const oldStatus = params.get("leads[status][0][old_status_id]");
         if (addId) leadIds.push(Number(addId));
         if (updateId) leadIds.push(Number(updateId));
-      if (statusId) leadIds.push(Number(statusId));
+        if (statusId) {
+          statusLeadId = Number(statusId);
+          leadIds.push(Number(statusId));
+        }
+        if (oldStatus) {
+          oldStatusId = Number(oldStatus);
+        }
       } catch {
         // ignore, fallback to regex below
       }
@@ -238,6 +402,7 @@ export async function POST(request: NextRequest) {
       const addRegex = /leads\[add]\[\d+]\[id]\D+(\d+)/g;
       const updateRegex = /leads\[update]\[\d+]\[id]\D+(\d+)/g;
       const statusRegex = /leads\[status]\[\d+]\[id]\D+(\d+)/g;
+      const oldStatusRegex = /leads\[status]\[\d+]\[old_status_id]\D+(\d+)/g;
       let match: RegExpExecArray | null;
       while ((match = addRegex.exec(rawBody)) !== null) {
         leadIds.push(Number(match[1]));
@@ -246,7 +411,11 @@ export async function POST(request: NextRequest) {
         leadIds.push(Number(match[1]));
       }
       while ((match = statusRegex.exec(rawBody)) !== null) {
+        statusLeadId = Number(match[1]);
         leadIds.push(Number(match[1]));
+      }
+      while ((match = oldStatusRegex.exec(rawBody)) !== null) {
+        oldStatusId = Number(match[1]);
       }
 
       payload = { leads: { add: [], update: [] } };
@@ -276,6 +445,9 @@ export async function POST(request: NextRequest) {
     }
 
     const leadIds = extractLeadIds(payload);
+    if (statusLeadId) {
+      leadIds.push(statusLeadId);
+    }
 
     if (leadIds.length === 0) {
       return NextResponse.json(
@@ -284,7 +456,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    Promise.all(leadIds.map((id) => processLead(id))).catch((error) => {
+    const uniqueIds = Array.from(new Set(leadIds)).filter((id) =>
+      Number.isFinite(id),
+    );
+    Promise.all(
+      uniqueIds.map((id) =>
+        processLead(id, id === statusLeadId ? oldStatusId ?? undefined : undefined),
+      ),
+    ).catch((error) => {
       console.error("Webhook processing error:", error);
     });
 
