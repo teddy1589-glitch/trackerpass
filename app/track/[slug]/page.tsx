@@ -158,9 +158,25 @@ export default async function TrackPage({
           </section>
 
           <InfoCard title="Пропуск">
+            {permitInfo.pass_check_status === "checking" ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+                Проверяем пропуск в реестре...
+              </div>
+            ) : null}
+            {permitInfo.pass_check_status === "error" ? (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-600">
+                Не удалось проверить пропуск. Попробуем позже.
+              </div>
+            ) : null}
             <FieldRow
               label="Срок действия"
-              value={toDisplayValue(permitInfo.pass_expiry)}
+              value={toDisplayValue(
+                permitInfo.pass_validity_date ?? permitInfo.pass_expiry,
+              )}
+            />
+            <FieldRow
+              label="Начало действия"
+              value={toDisplayValue(permitInfo.pass_start_date)}
             />
             <FieldRow
               label="Серия и номер"
@@ -174,6 +190,10 @@ export default async function TrackPage({
             <FieldRow
               label="Тип пропуска"
               value={toDisplayValue(permitInfo.pass_type)}
+            />
+            <FieldRow
+              label="Период действия"
+              value={toDisplayValue(permitInfo.pass_validity_period)}
             />
             <FieldRow
               label="Выход пропуска"

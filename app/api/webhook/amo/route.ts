@@ -197,17 +197,29 @@ async function processLead(
       existingPassValidity,
   );
   if (transitionedToPassReleased && !hasPassData) {
-    try {
-      const regNumber = String(lead.name || "").trim();
-      if (!regNumber) {
-        console.warn("Webhook: missing regNumber for pass check", {
-          lead_id: lead.id,
-        });
-      } else if (!PASS_CHECK_API_TOKEN) {
-        console.warn("Webhook: PASS_CHECK_API_TOKEN is not set", {
-          lead_id: lead.id,
-        });
-      } else {
+    permitInfo.pass_check_status = "checking";
+    permitInfo.pass_check_error = null;
+    const pendingSave = await upsertOrder({
+      amo_lead_id: lead.id,
+      status_id: lead.status_id,
+      status_label: lead.name,
+      car_info: carInfo,
+      permit_info: permitInfo,
+      manager_contact: managerContact,
+    });
+    console.log("Webhook: pass check queued", {
+      lead_id: lead.id,
+      saved_id: pendingSave?.amo_lead_id ?? null,
+    });
+    void (async () => {
+      try {
+        const regNumber = String(lead.name || "").trim();
+        if (!regNumber) {
+          throw new Error("missing regNumber");
+        }
+        if (!PASS_CHECK_API_TOKEN) {
+          throw new Error("PASS_CHECK_API_TOKEN is not set");
+        }
         const passInfo = await fetchPassInfo(regNumber);
         if (passInfo) {
           permitInfo.pass_number = passInfo.number ?? null;
@@ -219,22 +231,52 @@ async function processLead(
           permitInfo.pass_validity_period =
             passInfo.typepassvalidityperiod ?? null;
           permitInfo.pass_raw = passInfo;
+          permitInfo.pass_check_status = "done";
+          permitInfo.pass_check_error = null;
+          await upsertOrder({
+            amo_lead_id: lead.id,
+            status_id: lead.status_id,
+            status_label: lead.name,
+            car_info: carInfo,
+            permit_info: permitInfo,
+            manager_contact: managerContact,
+          });
           console.log("Webhook: pass info saved", {
             lead_id: lead.id,
             number: passInfo.number,
             zone: passInfo.allowedzona,
           });
         } else {
+          permitInfo.pass_check_status = "error";
+          permitInfo.pass_check_error = "not_found";
+          await upsertOrder({
+            amo_lead_id: lead.id,
+            status_id: lead.status_id,
+            status_label: lead.name,
+            car_info: carInfo,
+            permit_info: permitInfo,
+            manager_contact: managerContact,
+          });
           console.warn("Webhook: pass info not found", {
             lead_id: lead.id,
             reg_number: regNumber,
           });
         }
+      } catch (error) {
+        const err = error instanceof Error ? error.message : String(error);
+        permitInfo.pass_check_status = "error";
+        permitInfo.pass_check_error = err;
+        await upsertOrder({
+          amo_lead_id: lead.id,
+          status_id: lead.status_id,
+          status_label: lead.name,
+          car_info: carInfo,
+          permit_info: permitInfo,
+          manager_contact: managerContact,
+        });
+        console.warn("Webhook: pass check failed", err);
       }
-    } catch (error) {
-      const err = error instanceof Error ? error.message : String(error);
-      console.warn("Webhook: pass check failed", err);
-    }
+    })();
   } else if (transitionedToPassReleased) {
     console.log("Webhook: skipping pass check, data already set", {
       lead_id: lead.id,
