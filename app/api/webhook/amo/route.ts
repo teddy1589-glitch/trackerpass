@@ -178,6 +178,16 @@ async function processLead(
     });
   }
 
+  let managerContact: Record<string, unknown> = {};
+  if (lead.responsible_user_id) {
+    const user = await client.getUser(lead.responsible_user_id);
+    if (user) {
+      managerContact = { id: user.id, name: user.name };
+    } else {
+      managerContact = { id: lead.responsible_user_id };
+    }
+  }
+
   const transitionedToPassReleased =
     lead.status_id === STATUS_PASS_RELEASED &&
     oldStatusId !== undefined &&
@@ -314,16 +324,6 @@ async function processLead(
       2,
     ),
   );
-
-  let managerContact: Record<string, unknown> = {};
-  if (lead.responsible_user_id) {
-    const user = await client.getUser(lead.responsible_user_id);
-    if (user) {
-      managerContact = { id: user.id, name: user.name };
-    } else {
-      managerContact = { id: lead.responsible_user_id };
-    }
-  }
 
   const saved = await upsertOrder({
     amo_lead_id: lead.id,
