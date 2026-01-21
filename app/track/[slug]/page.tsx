@@ -102,27 +102,11 @@ export default async function TrackPage({
         <BrandHeader />
 
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
-                  Текущий статус
-                </p>
-                <h2 className="text-2xl font-semibold text-slate-900">
-                  {order.status_label ?? "Статус формируется"}
-                </h2>
-              </div>
-              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-500">
-                <span>Обновлено</span>
-                <span>{toDisplayValue(order.updated_at) ?? "—"}</span>
-              </div>
-            </div>
-            <StatusCard
-              title={order.status_label ?? "Статус формируется"}
-              step={order.status_step ?? 1}
-              statusId={order.status_id ?? null}
-            />
-          </div>
+          <StatusCard
+            title={order.status_label ?? "Статус формируется"}
+            step={order.status_step ?? 1}
+            statusId={order.status_id ?? null}
+          />
         </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -132,11 +116,6 @@ export default async function TrackPage({
                 <h3 className="text-lg font-semibold text-slate-900">
                   Автомобиль
                 </h3>
-                {carInfo.image_url ? (
-                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-500">
-                    Фото
-                  </span>
-                ) : null}
               </div>
               <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
                 <div className="flex items-center justify-center sm:justify-start">
@@ -182,6 +161,14 @@ export default async function TrackPage({
             <FieldRow
               label="Срок действия"
               value={toDisplayValue(permitInfo.pass_expiry)}
+            />
+            <FieldRow
+              label="Серия пропуска"
+              value={toDisplayValue(permitInfo.pass_series ?? permitInfo.series)}
+            />
+            <FieldRow
+              label="Номер пропуска"
+              value={toDisplayValue(permitInfo.pass_number ?? permitInfo.number)}
             />
             <FieldRow label="Зона" value={toDisplayValue(permitInfo.zone)} />
             <FieldRow
