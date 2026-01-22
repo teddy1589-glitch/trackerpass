@@ -1,6 +1,5 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { BrandHeader } from "@/components/tracker/BrandHeader";
 import { StatusCard } from "@/components/tracker/StatusCard";
 import { InfoCard } from "@/components/tracker/InfoCard";
 import { FieldRow } from "@/components/tracker/FieldRow";
@@ -197,21 +196,43 @@ export default async function TrackPage({
   const passValidity = buildPermitValidity(passStart, passEnd);
   const permitCardClass =
     passValidity.status === "active"
-      ? "border-emerald-300"
+      ? "border-2 border-emerald-400"
       : passValidity.status === "expired"
-        ? "border-rose-300"
-        : "border-transparent";
+        ? "border-2 border-rose-400"
+        : "border border-transparent";
+  const expectedReadyAt = asString(permitInfo.ready_at);
+  const managerName = asString(managerInfo.full_name ?? managerInfo.name);
+  const managerAvatar = asString(managerInfo.avatar_url);
+  const managerPhone = asString(managerInfo.phone);
+  const managerEmail = asString(managerInfo.email);
+  const managerWhatsapp = asString(managerInfo.whatsapp);
+  const managerTelegram = asString(managerInfo.telegram);
+  const managerSite = asString(managerInfo.site);
+  const whatsappLink = managerWhatsapp
+    ? managerWhatsapp.startsWith("http")
+      ? managerWhatsapp
+      : `https://wa.me/${managerWhatsapp.replace(/\D/g, "")}`
+    : null;
+  const telegramLink = managerTelegram
+    ? managerTelegram.startsWith("http")
+      ? managerTelegram
+      : `https://t.me/${managerTelegram.replace(/^@/, "")}`
+    : null;
+  const siteLink = managerSite
+    ? managerSite.startsWith("http")
+      ? managerSite
+      : `https://${managerSite}`
+    : null;
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <BrandHeader />
-
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <StatusCard
             title={order.status_label ?? "Статус формируется"}
             step={order.status_step ?? 1}
             statusId={order.status_id ?? null}
+            readyAt={expectedReadyAt}
           />
         </section>
 
@@ -312,9 +333,71 @@ export default async function TrackPage({
             />
           </InfoCard>
 
-          <InfoCard title="Менеджер">
-            <FieldRow label="Имя" value={toDisplayValue(managerInfo.name)} />
-            <FieldRow label="ID" value={toDisplayValue(managerInfo.id)} />
+          <InfoCard title="Менеджер" className="lg:col-span-2">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white">
+                  {managerAvatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={managerAvatar}
+                      alt="Фото менеджера"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs text-slate-400">Фото</span>
+                  )}
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-slate-900">
+                    {managerName ?? "Менеджер"}
+                  </div>
+                  {managerPhone ? (
+                    <div className="text-sm text-slate-600">{managerPhone}</div>
+                  ) : null}
+                  {siteLink ? (
+                    <a
+                      href={siteLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-brand hover:underline"
+                    >
+                      {managerSite}
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                {whatsappLink ? (
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700"
+                  >
+                    WhatsApp
+                  </a>
+                ) : null}
+                {telegramLink ? (
+                  <a
+                    href={telegramLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
+                  >
+                    Telegram
+                  </a>
+                ) : null}
+                {managerEmail ? (
+                  <a
+                    href={`mailto:${managerEmail}`}
+                    className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-700"
+                  >
+                    {managerEmail}
+                  </a>
+                ) : null}
+              </div>
+            </div>
           </InfoCard>
         </div>
 

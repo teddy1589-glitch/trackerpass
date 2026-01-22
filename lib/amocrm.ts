@@ -326,13 +326,8 @@ export class AmoCRMClient {
   }
 
   async addLeadNote(leadId: number, text: string): Promise<void> {
-    const url = `${this.getBaseUrl()}/api/v4/leads/${leadId}/notes`;
-    const response = await fetch(url, {
+    await this.request(`/api/v4/leads/${leadId}/notes`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify([
         {
           note_type: "common",
@@ -340,12 +335,5 @@ export class AmoCRMClient {
         },
       ]),
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Failed to add lead note: ${response.status} ${response.statusText}. ${errorText}`,
-      );
-    }
   }
 }

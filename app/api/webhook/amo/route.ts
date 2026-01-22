@@ -3,6 +3,7 @@ import { AmoCRMClient } from "@/lib/amocrm";
 import { getOrderByLeadId, upsertOrder } from "@/lib/db";
 import { calcPermitReadyAt, resolvePermitType } from "@/lib/deadline";
 import { generateCarImage } from "@/lib/openai";
+import { getManagerProfile } from "@/lib/managerProfiles";
 
 interface AmoWebhookEvent {
   leads?: {
@@ -185,6 +186,10 @@ async function processLead(
       managerContact = { id: user.id, name: user.name };
     } else {
       managerContact = { id: lead.responsible_user_id };
+    }
+    const profile = getManagerProfile(user?.id ?? lead.responsible_user_id);
+    if (profile) {
+      managerContact = { ...managerContact, ...profile };
     }
   }
 
@@ -383,11 +388,15 @@ async function processLead(
   if (shouldCreateLink && saved?.hash_slug && !hasExistingSlug) {
     const base = process.env.TRACK_BASE_URL ?? "http://89.44.86.30:3000/track";
     const link = `${base}/${saved.hash_slug}`;
-    await client.addLeadNote(
-      lead.id,
-      `Ссылка на трекинг: ${link}`,
-    );
-    console.log("Webhook: tracking link note added", link);
+    try {
+      await client.addLeadNote(lead.id, `Ссылка на трекинг: ${link}`);
+      console.log("Webhook: tracking link note added", link);
+    } catch (error) {
+      console.warn(
+        "Webhook: failed to add tracking link note",
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   }
 }
 

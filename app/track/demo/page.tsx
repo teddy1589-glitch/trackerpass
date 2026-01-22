@@ -1,13 +1,12 @@
-import { BrandHeader } from "@/components/tracker/BrandHeader";
 import { StatusCard } from "@/components/tracker/StatusCard";
 import { InfoCard } from "@/components/tracker/InfoCard";
 import { FieldRow } from "@/components/tracker/FieldRow";
 
 export default function TrackDemoPage() {
   const demo = {
-    status_label: "Отказ",
-    status_step: 4,
-    status_id: 41138698,
+    status_label: "Документы поданы",
+    status_step: 3,
+    status_id: 41138692,
     car_info: {
       vin: "WVWZZZ1KZ6W000001",
       brand_model: "Volkswagen Transporter T6",
@@ -23,10 +22,14 @@ export default function TrackDemoPage() {
       ready_at: "2026-01-24 16:00 (МСК)",
     },
     manager_contact: {
-      name: "Андрей Смирнов",
-      id: "MGR-204",
+      full_name: "Андрей Смирнов",
       phone: "+7 (495) 123-45-67",
-      email: "manager@rte-consult.ru",
+      email: "smirnov@rte-consult.ru",
+      whatsapp: "+79001234567",
+      telegram: "rte_manager",
+      site: "rte-consult.ru",
+      avatar_url:
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80",
     },
     updated_at: "2026-01-18 17:45",
   };
@@ -34,13 +37,14 @@ export default function TrackDemoPage() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,59,79,0.12),_transparent_40%),_radial-gradient(circle_at_right,_rgba(154,89,255,0.12),_transparent_45%),_radial-gradient(circle_at_left,_rgba(47,107,255,0.12),_transparent_45%)] px-4 py-10 text-slate-900">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <BrandHeader />
-
-        <StatusCard
-          title={demo.status_label}
-          step={demo.status_step}
-          statusId={demo.status_id}
-        />
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <StatusCard
+            title={demo.status_label}
+            step={demo.status_step}
+            statusId={demo.status_id}
+            readyAt={demo.permit_info.ready_at}
+          />
+        </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <InfoCard title="Автомобиль">
@@ -62,11 +66,59 @@ export default function TrackDemoPage() {
             />
           </InfoCard>
 
-          <InfoCard title="Менеджер">
-            <FieldRow label="Имя" value={demo.manager_contact.name} />
-            <FieldRow label="ID" value={demo.manager_contact.id} />
-            <FieldRow label="Телефон" value={demo.manager_contact.phone} />
-            <FieldRow label="Email" value={demo.manager_contact.email} />
+          <InfoCard title="Менеджер" className="lg:col-span-2">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={demo.manager_contact.avatar_url}
+                    alt="Фото менеджера"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div>
+                  <div className="text-lg font-semibold text-slate-900">
+                    {demo.manager_contact.full_name}
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    {demo.manager_contact.phone}
+                  </div>
+                  <a
+                    href={`https://${demo.manager_contact.site}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-brand hover:underline"
+                  >
+                    {demo.manager_contact.site}
+                  </a>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                <a
+                  href={`https://wa.me/${demo.manager_contact.whatsapp.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700"
+                >
+                  WhatsApp
+                </a>
+                <a
+                  href={`https://t.me/${demo.manager_contact.telegram.replace(/^@/, "")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
+                >
+                  Telegram
+                </a>
+                <a
+                  href={`mailto:${demo.manager_contact.email}`}
+                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-700"
+                >
+                  {demo.manager_contact.email}
+                </a>
+              </div>
+            </div>
           </InfoCard>
         </div>
 

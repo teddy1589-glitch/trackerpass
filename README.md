@@ -42,3 +42,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - `IMAGE_UPLOAD_DIR` — local path for saved images (default: `public/uploads`)
 - `IMAGE_PROXY_POLL_INTERVAL_MS` — polling interval in ms (default: `3000`)
 - `IMAGE_PROXY_POLL_TIMEOUT_MS` — polling timeout in ms (default: `60000`)
+
+## Pass Check API
+
+- `PASS_CHECK_API_TOKEN` — API token for pass lookup (required)
+- `PASS_CHECK_API_URL` — base URL for pass lookup (default: `https://api-cloud.ru/api/transportMos.php`)
