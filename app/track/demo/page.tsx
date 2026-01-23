@@ -3,21 +3,63 @@ import { InfoCard } from "@/components/tracker/InfoCard";
 import { FieldRow } from "@/components/tracker/FieldRow";
 
 export default function TrackDemoPage() {
+  const hasTimeInSource = (value: string) => {
+    const clean = value.replace(/\s*\(.*\)\s*$/, "").trim();
+    if (!clean) {
+      return false;
+    }
+    if (/\b\d{1,2}:\d{2}\b/.test(clean)) {
+      return true;
+    }
+    return clean.includes("T") && /\d{2}:\d{2}/.test(clean);
+  };
+
+  const parseDemoDate = (value: string) => {
+    const clean = value.replace(/\s*\(.*\)\s*$/, "").trim();
+    if (clean.includes("-")) {
+      const parsed = new Date(clean);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed;
+      }
+    }
+    const [datePart, timePart] = clean.split(" ");
+    const [day, month, yearRaw] = datePart.split(".").map(Number);
+    if (!day || !month || !yearRaw) {
+      return null;
+    }
+    const year = yearRaw < 100 ? 2000 + yearRaw : yearRaw;
+    let hours = 0;
+    let minutes = 0;
+    if (timePart) {
+      const [hh, mm] = timePart.split(":").map(Number);
+      hours = Number.isFinite(hh) ? hh : 0;
+      minutes = Number.isFinite(mm) ? mm : 0;
+    }
+    return new Date(year, month - 1, day, hours, minutes);
+  };
+
+  const formatDateParts = (date: Date, includeTime: boolean) => {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = String(date.getFullYear() % 100).padStart(2, "0");
+    if (!includeTime) {
+      return `${day}.${month}.${year}`;
+    }
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${day}.${month}.${year}, ${hours}:${minutes}`;
+  };
+
   const formatDateTime = (value: string | null) => {
     if (!value) {
       return null;
     }
-    const clean = value.replace(/\s*\(.*\)\s*$/, "").trim();
-    const parsed = new Date(clean);
-    if (Number.isNaN(parsed.getTime())) {
+    const parsed = parseDemoDate(value);
+    if (!parsed) {
       return value;
     }
-    const day = String(parsed.getDate()).padStart(2, "0");
-    const month = String(parsed.getMonth() + 1).padStart(2, "0");
-    const year = String(parsed.getFullYear() % 100).padStart(2, "0");
-    const hours = String(parsed.getHours()).padStart(2, "0");
-    const minutes = String(parsed.getMinutes()).padStart(2, "0");
-    return `${day}.${month}.${year}, ${hours}:${minutes}`;
+    const includeTime = hasTimeInSource(value);
+    return formatDateParts(parsed, includeTime);
   };
 
   const demo = {

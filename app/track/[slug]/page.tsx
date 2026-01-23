@@ -82,29 +82,46 @@ function normalizeDate(value: Date): Date {
   return new Date(value.getFullYear(), value.getMonth(), value.getDate());
 }
 
+function hasTimeInSource(value: string): boolean {
+  const clean = value.replace(/\s*\(.*\)\s*$/, "").trim();
+  if (!clean) {
+    return false;
+  }
+  if (/\b\d{1,2}:\d{2}\b/.test(clean)) {
+    return true;
+  }
+  return clean.includes("T") && /\d{2}:\d{2}/.test(clean);
+}
+
+function formatDateParts(date: Date, includeTime: boolean): string {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear() % 100).padStart(2, "0");
+  if (!includeTime) {
+    return `${day}.${month}.${year}`;
+  }
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${day}.${month}.${year}, ${hours}:${minutes}`;
+}
+
 function formatDateTime(value: unknown): string | null {
   if (!value) {
     return null;
   }
   if (value instanceof Date) {
-    const day = String(value.getDate()).padStart(2, "0");
-    const month = String(value.getMonth() + 1).padStart(2, "0");
-    const year = String(value.getFullYear() % 100).padStart(2, "0");
-    const hours = String(value.getHours()).padStart(2, "0");
-    const minutes = String(value.getMinutes()).padStart(2, "0");
-    return `${day}.${month}.${year}, ${hours}:${minutes}`;
+    const includeTime = value.getHours() !== 0 || value.getMinutes() !== 0;
+    return formatDateParts(value, includeTime);
   }
   if (typeof value === "string" || typeof value === "number") {
-    const parsed = parsePermitDate(String(value));
+    const rawValue = String(value);
+    const parsed = parsePermitDate(rawValue);
     if (!parsed) {
       return typeof value === "string" ? value : String(value);
     }
-    const day = String(parsed.getDate()).padStart(2, "0");
-    const month = String(parsed.getMonth() + 1).padStart(2, "0");
-    const year = String(parsed.getFullYear() % 100).padStart(2, "0");
-    const hours = String(parsed.getHours()).padStart(2, "0");
-    const minutes = String(parsed.getMinutes()).padStart(2, "0");
-    return `${day}.${month}.${year}, ${hours}:${minutes}`;
+    const includeTime =
+      typeof value === "number" ? true : hasTimeInSource(rawValue);
+    return formatDateParts(parsed, includeTime);
   }
   return null;
 }
@@ -256,6 +273,7 @@ export default async function TrackPage({
       permitInfo.pass_type ||
       permitInfo.pass_validity_period,
   );
+  const isDocsSubmitted = order.status_id === 41138692;
   const whatsappLink = managerWhatsapp
     ? managerWhatsapp.startsWith("http")
       ? managerWhatsapp
@@ -389,9 +407,9 @@ export default async function TrackPage({
                 value={toDisplayValue(permitInfo.pass_validity_period)}
               />
             ) : null}
-            {!hasPassData && expectedReadyAt ? (
+            {isDocsSubmitted && !hasPassData && expectedReadyAt ? (
               <FieldRow
-                label="Выход пропуска"
+                label="Ожидаемая дата выхода"
                 value={formatDateTime(expectedReadyAt)}
               />
             ) : null}
