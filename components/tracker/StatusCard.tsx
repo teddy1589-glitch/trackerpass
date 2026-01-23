@@ -88,9 +88,6 @@ export function StatusCard({ title, step, statusId, readyAt }: StatusCardProps) 
                 <span className="text-base leading-none">•</span>
                 <span>Этап {stepNumber}</span>
               </div>
-              <p className="text-xs uppercase tracking-[0.2em]">
-                {isFinalSuccess ? "Успешно" : isFinalRejected ? "Отказ" : "Этап"}
-              </p>
               <p className="mt-2 text-sm font-semibold">{label}</p>
               {showExpectedReadyAt ? (
                 <p className="mt-1 text-xs text-slate-500">

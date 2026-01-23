@@ -3,6 +3,23 @@ import { InfoCard } from "@/components/tracker/InfoCard";
 import { FieldRow } from "@/components/tracker/FieldRow";
 
 export default function TrackDemoPage() {
+  const formatDateTime = (value: string | null) => {
+    if (!value) {
+      return null;
+    }
+    const clean = value.replace(/\s*\(.*\)\s*$/, "").trim();
+    const parsed = new Date(clean);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+    const day = String(parsed.getDate()).padStart(2, "0");
+    const month = String(parsed.getMonth() + 1).padStart(2, "0");
+    const year = String(parsed.getFullYear() % 100).padStart(2, "0");
+    const hours = String(parsed.getHours()).padStart(2, "0");
+    const minutes = String(parsed.getMinutes()).padStart(2, "0");
+    return `${day}.${month}.${year}, ${hours}:${minutes}`;
+  };
+
   const demo = {
     status_label: "Документы поданы",
     status_step: 3,
@@ -17,6 +34,8 @@ export default function TrackDemoPage() {
     },
     permit_info: {
       pass_expiry: "2026-02-28",
+      pass_start_date: "2026-01-24 10:00",
+      pass_number: "77 1234567",
       zone: "СК",
       pass_type: "Грузовой",
       ready_at: "2026-01-24 16:00 (МСК)",
@@ -42,7 +61,7 @@ export default function TrackDemoPage() {
             title={demo.status_label}
             step={demo.status_step}
             statusId={demo.status_id}
-            readyAt={demo.permit_info.ready_at}
+            readyAt={formatDateTime(demo.permit_info.ready_at)}
           />
         </section>
 
@@ -53,7 +72,13 @@ export default function TrackDemoPage() {
           </InfoCard>
 
           <InfoCard title="Пропуск">
-            <FieldRow label="Срок действия" value={demo.permit_info.pass_expiry} />
+            <FieldRow
+              label="Срок действия"
+              value={`${formatDateTime(demo.permit_info.pass_start_date)} - ${formatDateTime(
+                demo.permit_info.pass_expiry,
+              )}`}
+            />
+            <FieldRow label="Серия и номер" value={demo.permit_info.pass_number} />
             <FieldRow label="Зона" value={demo.permit_info.zone} />
             <FieldRow label="Тип пропуска" value={demo.permit_info.pass_type} />
           </InfoCard>
@@ -62,7 +87,7 @@ export default function TrackDemoPage() {
             <FieldRow label="Номер" value={demo.car_info.diagnostic_card} />
             <FieldRow
               label="Действует до"
-              value={demo.car_info.diagnostic_card_valid_until}
+              value={formatDateTime(demo.car_info.diagnostic_card_valid_until)}
             />
           </InfoCard>
 

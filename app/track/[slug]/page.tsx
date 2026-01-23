@@ -55,11 +55,19 @@ function parsePermitDate(value: string | null): Date | null {
   if (!value) {
     return null;
   }
-  const [datePart, timePart] = value.trim().split(" ");
-  const [day, month, year] = datePart.split(".").map(Number);
-  if (!day || !month || !year) {
+  const clean = value.replace(/\s*\(.*\)\s*$/, "").trim();
+  if (clean.includes("-")) {
+    const parsed = new Date(clean);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+  const [datePart, timePart] = clean.split(" ");
+  const [day, month, yearRaw] = datePart.split(".").map(Number);
+  if (!day || !month || !yearRaw) {
     return null;
   }
+  const year = yearRaw < 100 ? 2000 + yearRaw : yearRaw;
   let hours = 0;
   let minutes = 0;
   if (timePart) {
@@ -74,6 +82,33 @@ function normalizeDate(value: Date): Date {
   return new Date(value.getFullYear(), value.getMonth(), value.getDate());
 }
 
+function formatDateTime(value: unknown): string | null {
+  if (!value) {
+    return null;
+  }
+  if (value instanceof Date) {
+    const day = String(value.getDate()).padStart(2, "0");
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const year = String(value.getFullYear() % 100).padStart(2, "0");
+    const hours = String(value.getHours()).padStart(2, "0");
+    const minutes = String(value.getMinutes()).padStart(2, "0");
+    return `${day}.${month}.${year}, ${hours}:${minutes}`;
+  }
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = parsePermitDate(String(value));
+    if (!parsed) {
+      return typeof value === "string" ? value : String(value);
+    }
+    const day = String(parsed.getDate()).padStart(2, "0");
+    const month = String(parsed.getMonth() + 1).padStart(2, "0");
+    const year = String(parsed.getFullYear() % 100).padStart(2, "0");
+    const hours = String(parsed.getHours()).padStart(2, "0");
+    const minutes = String(parsed.getMinutes()).padStart(2, "0");
+    return `${day}.${month}.${year}, ${hours}:${minutes}`;
+  }
+  return null;
+}
+
 function buildPermitValidity(
   startValue: string | null,
   endValue: string | null,
@@ -86,8 +121,8 @@ function buildPermitValidity(
       status: "unknown",
     };
   }
-  const startLabel = startValue ?? "—";
-  const endLabel = endValue ?? "—";
+  const startLabel = formatDateTime(startValue) ?? "—";
+  const endLabel = formatDateTime(endValue) ?? "—";
   const startDate = parsePermitDate(startValue);
   const endDate = parsePermitDate(endValue);
   const today = normalizeDate(new Date());
@@ -193,6 +228,7 @@ export default async function TrackPage({
   );
   const passStart = asString(permitInfo.pass_start_date);
   const passEnd = asString(permitInfo.pass_validity_date ?? permitInfo.pass_expiry);
+  const hasPassValidity = Boolean(passStart && passEnd);
   const passValidity = buildPermitValidity(passStart, passEnd);
   const permitCardClass =
     passValidity.status === "active"
@@ -208,6 +244,18 @@ export default async function TrackPage({
   const managerWhatsapp = asString(managerInfo.whatsapp);
   const managerTelegram = asString(managerInfo.telegram);
   const managerSite = asString(managerInfo.site);
+  const hasPassData = Boolean(
+    permitInfo.pass_series ||
+      permitInfo.series ||
+      permitInfo.pass_number ||
+      permitInfo.number ||
+      permitInfo.pass_validity_date ||
+      permitInfo.pass_expiry ||
+      permitInfo.pass_start_date ||
+      permitInfo.zone ||
+      permitInfo.pass_type ||
+      permitInfo.pass_validity_period,
+  );
   const whatsappLink = managerWhatsapp
     ? managerWhatsapp.startsWith("http")
       ? managerWhatsapp
@@ -223,6 +271,9 @@ export default async function TrackPage({
       ? managerSite
       : `https://${managerSite}`
     : null;
+  const phoneHref = managerPhone
+    ? `tel:${managerPhone.replace(/[^\d+]/g, "")}`
+    : null;
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
@@ -232,7 +283,7 @@ export default async function TrackPage({
             title={order.status_label ?? "Статус формируется"}
             step={order.status_step ?? 1}
             statusId={order.status_id ?? null}
-            readyAt={expectedReadyAt}
+            readyAt={formatDateTime(expectedReadyAt)}
           />
         </section>
 
@@ -275,7 +326,7 @@ export default async function TrackPage({
                       />
                       <FieldRow
                         label="Действует до"
-                        value={toDisplayValue(carInfo.diagnostic_card_valid_until)}
+                        value={formatDateTime(carInfo.diagnostic_card_valid_until)}
                       />
                     </>
                   ) : null}
@@ -295,10 +346,10 @@ export default async function TrackPage({
                 Не удалось проверить пропуск. Попробуем позже.
               </div>
             ) : null}
-            <FieldRow
-              label="Срок действия"
-              value={
-                passValidity.dateText ? (
+            {hasPassValidity && passValidity.dateText ? (
+              <FieldRow
+                label="Срок действия"
+                value={
                   <div className="flex flex-col items-end gap-1">
                     <span>{passValidity.dateText}</span>
                     {passValidity.daysText ? (
@@ -307,30 +358,43 @@ export default async function TrackPage({
                       </span>
                     ) : null}
                   </div>
-                ) : null
-              }
-            />
-            <FieldRow
-              label="Серия и номер"
-              value={toDisplayValue(
-                permitInfo.pass_series || permitInfo.series || permitInfo.pass_number || permitInfo.number
-                  ? `${permitInfo.pass_series ?? permitInfo.series ?? ""}${permitInfo.pass_series || permitInfo.series ? " " : ""}${permitInfo.pass_number ?? permitInfo.number ?? ""}`.trim()
-                  : null,
-              )}
-            />
-            <FieldRow label="Зона" value={toDisplayValue(permitInfo.zone)} />
-            <FieldRow
-              label="Тип пропуска"
-              value={toDisplayValue(permitInfo.pass_type)}
-            />
-            <FieldRow
-              label="Период действия"
-              value={toDisplayValue(permitInfo.pass_validity_period)}
-            />
-            <FieldRow
-              label="Выход пропуска"
-              value={toDisplayValue(permitInfo.ready_at)}
-            />
+                }
+              />
+            ) : null}
+            {permitInfo.pass_series ||
+            permitInfo.series ||
+            permitInfo.pass_number ||
+            permitInfo.number ? (
+              <FieldRow
+                label="Серия и номер"
+                value={toDisplayValue(
+                  `${permitInfo.pass_series ?? permitInfo.series ?? ""}${
+                    permitInfo.pass_series || permitInfo.series ? " " : ""
+                  }${permitInfo.pass_number ?? permitInfo.number ?? ""}`.trim(),
+                )}
+              />
+            ) : null}
+            {permitInfo.zone ? (
+              <FieldRow label="Зона" value={toDisplayValue(permitInfo.zone)} />
+            ) : null}
+            {permitInfo.pass_type ? (
+              <FieldRow
+                label="Тип пропуска"
+                value={toDisplayValue(permitInfo.pass_type)}
+              />
+            ) : null}
+            {permitInfo.pass_validity_period ? (
+              <FieldRow
+                label="Период действия"
+                value={toDisplayValue(permitInfo.pass_validity_period)}
+              />
+            ) : null}
+            {!hasPassData && expectedReadyAt ? (
+              <FieldRow
+                label="Выход пропуска"
+                value={formatDateTime(expectedReadyAt)}
+              />
+            ) : null}
           </InfoCard>
 
           <InfoCard title="Менеджер" className="lg:col-span-2">
@@ -352,16 +416,63 @@ export default async function TrackPage({
                   <div className="text-lg font-semibold text-slate-900">
                     {managerName ?? "Менеджер"}
                   </div>
-                  {managerPhone ? (
-                    <div className="text-sm text-slate-600">{managerPhone}</div>
+                  {managerPhone && phoneHref ? (
+                    <a
+                      href={phoneHref}
+                      className="flex items-center gap-2 text-sm text-slate-600"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        className="h-4 w-4 text-slate-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M4.5 5.25c0-.414.336-.75.75-.75h2.424c.35 0 .658.243.734.584l.67 2.985a.75.75 0 0 1-.214.71l-1.37 1.37a11.202 11.202 0 0 0 5.36 5.36l1.37-1.37a.75.75 0 0 1 .71-.214l2.985.67c.34.076.584.384.584.734v2.424a.75.75 0 0 1-.75.75H17.25A12.75 12.75 0 0 1 4.5 5.25Z"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span>{managerPhone}</span>
+                    </a>
                   ) : null}
                   {siteLink ? (
                     <a
                       href={siteLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-sm text-brand hover:underline"
+                      className="flex items-center gap-2 text-sm text-brand hover:underline"
                     >
+                      <svg
+                        aria-hidden="true"
+                        className="h-4 w-4 text-brand"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M13.5 6.75h3.75V10.5"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M10.5 13.5 17.25 6.75"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M9 6.75h-1.5A2.25 2.25 0 0 0 5.25 9v7.5A2.25 2.25 0 0 0 7.5 18.75H15a2.25 2.25 0 0 0 2.25-2.25v-1.5"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
                       {managerSite}
                     </a>
                   ) : null}
