@@ -189,6 +189,47 @@ function buildPermitValidity(
   };
 }
 
+function buildDiagnosticCardStatus(validUntil: string | null) {
+  if (!validUntil) {
+    return {
+      daysText: null,
+      daysClassName: undefined,
+      status: "unknown",
+    };
+  }
+  const validUntilDate = parsePermitDate(validUntil);
+  if (!validUntilDate) {
+    return {
+      daysText: null,
+      daysClassName: undefined,
+      status: "unknown",
+    };
+  }
+  const today = normalizeDate(new Date());
+  const endNorm = normalizeDate(validUntilDate);
+  const remainingDays =
+    Math.floor((endNorm.getTime() - today.getTime()) / 86_400_000) + 1;
+  if (endNorm.getTime() < today.getTime()) {
+    return {
+      daysText: "Срок ДК истек",
+      daysClassName: "text-rose-600",
+      status: "expired",
+    };
+  }
+  if (remainingDays > 0) {
+    return {
+      daysText: `Осталось ${remainingDays} дн.`,
+      daysClassName: "text-emerald-600",
+      status: "active",
+    };
+  }
+  return {
+    daysText: null,
+    daysClassName: undefined,
+    status: "unknown",
+  };
+}
+
 function extractSlugFromPath(pathname?: string | null) {
   if (!pathname) {
     return null;
@@ -243,6 +284,8 @@ export default async function TrackPage({
   const hasDiagnosticCard = Boolean(
     carInfo.diagnostic_card || carInfo.diagnostic_card_valid_until,
   );
+  const diagnosticValidUntil = asString(carInfo.diagnostic_card_valid_until);
+  const diagnosticStatus = buildDiagnosticCardStatus(diagnosticValidUntil);
   const passStart = asString(permitInfo.pass_start_date);
   const passEnd = asString(permitInfo.pass_validity_date ?? permitInfo.pass_expiry);
   const hasPassValidity = Boolean(passStart && passEnd);
@@ -261,6 +304,7 @@ export default async function TrackPage({
   const managerWhatsapp = asString(managerInfo.whatsapp);
   const managerTelegram = asString(managerInfo.telegram);
   const managerSite = asString(managerInfo.site);
+  const passType = asString(permitInfo.pass_type);
   const hasPassData = Boolean(
     permitInfo.pass_series ||
       permitInfo.series ||
@@ -270,7 +314,7 @@ export default async function TrackPage({
       permitInfo.pass_expiry ||
       permitInfo.pass_start_date ||
       permitInfo.zone ||
-      permitInfo.pass_type ||
+      passType ||
       permitInfo.pass_validity_period,
   );
   const isDocsSubmitted = order.status_id === 41138692;
@@ -342,10 +386,21 @@ export default async function TrackPage({
                         label="Диагностическая карта"
                         value={toDisplayValue(carInfo.diagnostic_card)}
                       />
-                      <FieldRow
-                        label="Действует до"
-                        value={formatDateTime(carInfo.diagnostic_card_valid_until)}
-                      />
+                      {diagnosticValidUntil ? (
+                        <FieldRow
+                          label="Действует до"
+                          value={
+                            <div className="flex flex-col items-end gap-1">
+                              <span>{formatDateTime(diagnosticValidUntil)}</span>
+                              {diagnosticStatus.daysText ? (
+                                <span className={diagnosticStatus.daysClassName}>
+                                  {diagnosticStatus.daysText}
+                                </span>
+                              ) : null}
+                            </div>
+                          }
+                        />
+                      ) : null}
                     </>
                   ) : null}
                 </div>
@@ -395,10 +450,10 @@ export default async function TrackPage({
             {permitInfo.zone ? (
               <FieldRow label="Зона" value={toDisplayValue(permitInfo.zone)} />
             ) : null}
-            {permitInfo.pass_type ? (
+            {passType ? (
               <FieldRow
                 label="Тип пропуска"
-                value={toDisplayValue(permitInfo.pass_type)}
+                value={toDisplayValue(passType)}
               />
             ) : null}
             {permitInfo.pass_validity_period ? (

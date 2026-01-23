@@ -62,6 +62,45 @@ export default function TrackDemoPage() {
     return formatDateParts(parsed, includeTime);
   };
 
+  const normalizeDate = (value: Date) =>
+    new Date(value.getFullYear(), value.getMonth(), value.getDate());
+
+  const buildDiagnosticCardStatus = (validUntil: string | null) => {
+    if (!validUntil) {
+      return {
+        daysText: null,
+        daysClassName: undefined,
+      };
+    }
+    const parsed = parseDemoDate(validUntil);
+    if (!parsed) {
+      return {
+        daysText: null,
+        daysClassName: undefined,
+      };
+    }
+    const today = normalizeDate(new Date());
+    const endNorm = normalizeDate(parsed);
+    const remainingDays =
+      Math.floor((endNorm.getTime() - today.getTime()) / 86_400_000) + 1;
+    if (endNorm.getTime() < today.getTime()) {
+      return {
+        daysText: "Срок ДК истек",
+        daysClassName: "text-rose-600",
+      };
+    }
+    if (remainingDays > 0) {
+      return {
+        daysText: `Осталось ${remainingDays} дн.`,
+        daysClassName: "text-emerald-600",
+      };
+    }
+    return {
+      daysText: null,
+      daysClassName: undefined,
+    };
+  };
+
   const demo = {
     status_label: "Документы поданы",
     status_step: 3,
@@ -79,7 +118,7 @@ export default function TrackDemoPage() {
       pass_start_date: "2026-01-24 10:00",
       pass_number: "77 1234567",
       zone: "СК",
-      pass_type: "Грузовой",
+      pass_type: "Годовой",
       ready_at: "2026-01-24 16:00 (МСК)",
     },
     manager_contact: {
@@ -94,6 +133,9 @@ export default function TrackDemoPage() {
     },
     updated_at: "2026-01-18 17:45",
   };
+  const diagnosticCardStatus = buildDiagnosticCardStatus(
+    demo.car_info.diagnostic_card_valid_until,
+  );
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(255,59,79,0.12),_transparent_40%),_radial-gradient(circle_at_right,_rgba(154,89,255,0.12),_transparent_45%),_radial-gradient(circle_at_left,_rgba(47,107,255,0.12),_transparent_45%)] px-4 py-10 text-slate-900">
@@ -129,7 +171,22 @@ export default function TrackDemoPage() {
             <FieldRow label="Номер" value={demo.car_info.diagnostic_card} />
             <FieldRow
               label="Действует до"
-              value={formatDateTime(demo.car_info.diagnostic_card_valid_until)}
+              value={
+                <div className="flex flex-col items-end gap-1">
+                  <span>
+                    {formatDateTime(demo.car_info.diagnostic_card_valid_until)}
+                  </span>
+                  {diagnosticCardStatus.daysText ? (
+                    <span
+                      className={
+                        diagnosticCardStatus.daysClassName
+                      }
+                    >
+                      {diagnosticCardStatus.daysText}
+                    </span>
+                  ) : null}
+                </div>
+              }
             />
           </InfoCard>
 
