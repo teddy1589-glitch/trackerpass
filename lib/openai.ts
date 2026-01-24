@@ -3,7 +3,7 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
 const IMAGE_PROXY_BASE_URL = process.env.IMAGE_PROXY_BASE_URL;
-const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL ?? "http://localhost:3000";
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL ?? "https://order.rte-consult.ru";
 const IMAGE_UPLOAD_DIR = process.env.IMAGE_UPLOAD_DIR ?? "public/uploads";
 const POLL_INTERVAL_MS = Number(process.env.IMAGE_PROXY_POLL_INTERVAL_MS ?? "3000");
 const POLL_TIMEOUT_MS = Number(process.env.IMAGE_PROXY_POLL_TIMEOUT_MS ?? "60000");
