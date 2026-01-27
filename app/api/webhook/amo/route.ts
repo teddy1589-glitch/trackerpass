@@ -386,10 +386,14 @@ async function processLead(
   }
 
   if (shouldCreateLink && saved?.hash_slug && !hasExistingSlug) {
-    const base = process.env.TRACK_BASE_URL ?? "http://89.44.86.30:3000/track";
+    const base = process.env.TRACK_BASE_URL ?? "https://order.rte-consult.ru/track";
     const link = `${base}/${saved.hash_slug}`;
+    const noteText = `Для вашего удобства мы создали персональную страницу заказа — на ней отображается текущий статус, данные автомобиля и время выхода пропуска:
+👉 ${link}
+
+По всем вопросам — я на связи.`;
     try {
-      await client.addLeadNote(lead.id, `Ссылка на трекинг: ${link}`);
+      await client.addLeadNote(lead.id, noteText);
       console.log("Webhook: tracking link note added", link);
     } catch (error) {
       console.warn(
