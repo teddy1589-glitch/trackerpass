@@ -316,13 +316,32 @@ export default function TrackDemoPage() {
                   </svg>
                   <span>{demo.manager_contact.email}</span>
                 </a>
+                <a
+                  href="https://max.ru/u/f9LHodD0cOLxsnY_16Je6rUaBfYFHy76tRnTtlNdVMDsUeQS8k8bnvt_FZc"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-violet-700 transition-all duration-200 hover:scale-105 hover:bg-violet-100 hover:shadow-md active:scale-95"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" />
+                    <circle cx="8" cy="10" r="1.5" />
+                    <circle cx="12" cy="10" r="1.5" />
+                    <circle cx="16" cy="10" r="1.5" />
+                  </svg>
+                  <span>MAX</span>
+                </a>
               </div>
             </div>
           </InfoCard>
         </div>
 
         <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-xs uppercase tracking-[0.2em] text-brand-muted">
-          <span>RTE-Consult</span>
+          <span>РТЕ-Консалтинг</span>
           <span>Обновлено: {demo.updated_at}</span>
         </div>
       </div>

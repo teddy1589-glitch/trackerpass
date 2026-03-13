@@ -336,6 +336,7 @@ export default async function TrackPage({
   const phoneHref = managerPhone
     ? `tel:${managerPhone.replace(/[^\d+]/g, "")}`
     : null;
+  const maxLink = "https://max.ru/u/f9LHodD0cOLxsnY_16Je6rUaBfYFHy76tRnTtlNdVMDsUeQS8k8bnvt_FZc";
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
@@ -610,13 +611,32 @@ export default async function TrackPage({
                     <span>{managerEmail}</span>
                   </a>
                 ) : null}
+                <a
+                  href={maxLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-violet-700 transition-all duration-200 hover:scale-105 hover:bg-violet-100 hover:shadow-md active:scale-95"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" />
+                    <circle cx="8" cy="10" r="1.5" />
+                    <circle cx="12" cy="10" r="1.5" />
+                    <circle cx="16" cy="10" r="1.5" />
+                  </svg>
+                  <span>MAX</span>
+                </a>
               </div>
             </div>
           </InfoCard>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs uppercase tracking-[0.2em] text-slate-400">
-          <span className="text-slate-500">RTE-Consult</span>
+          <span className="text-slate-500">РТЕ-Консалтинг</span>
           <span>Данные обновляются автоматически</span>
         </div>
       </div>

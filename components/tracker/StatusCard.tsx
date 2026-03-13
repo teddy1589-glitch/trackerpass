@@ -53,8 +53,8 @@ export function StatusCard({ title, step, statusId, readyAt }: StatusCardProps) 
             {displayTitle}
           </h2>
         </div>
-        <div className="flex h-[53px] w-[53px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <Image src="/logo.png" alt="RTE-Consult" width={44} height={44} />
+        <div className="flex h-[50px] w-auto items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white px-3">
+          <Image src="/logo.png" alt="RTE-Консалтинг" width={140} height={40} className="object-contain" />
         </div>
       </div>
       <div className="mt-6 grid gap-4 lg:grid-cols-4">
