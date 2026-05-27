@@ -68,21 +68,26 @@ function selectPassInfo(list: PassApiEntry[] = []): PassApiEntry | null {
 }
 
 async function fetchPassInfo(regNumber: string): Promise<PassApiEntry | null> {
+  const cleanReg = regNumber.replace(/\s+/g, "");
   const response = await fetch(PASS_CHECK_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-API-Key": PASS_CHECK_API_KEY ?? "",
     },
-    body: JSON.stringify({ type: "pass", regNumber }),
+    body: JSON.stringify({ type: "pass", regNumber: cleanReg }),
   });
   if (!response.ok) {
-    throw new Error(`Pass API error ${response.status}`);
+    let errMsg = `Pass API error ${response.status}`;
+    try {
+      const errBody = (await response.json()) as PassApiResponse;
+      if (errBody.message) errMsg = errBody.message;
+    } catch {}
+    throw new Error(errMsg);
   }
   const data = (await response.json()) as PassApiResponse;
-  if (data.error || data.status !== 200) {
-    const message = data.message ?? data.error ?? "Unknown pass API error";
-    throw new Error(message);
+  if (data.status !== 200) {
+    throw new Error(data.message ?? `Pass API returned status ${data.status}`);
   }
   return selectPassInfo(data.list ?? []);
 }
