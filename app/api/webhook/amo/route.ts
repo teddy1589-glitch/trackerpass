@@ -30,10 +30,9 @@ type PassApiResponse = {
   message?: string;
 };
 
-const PASS_CHECK_API_TOKEN = process.env.PASS_CHECK_API_TOKEN;
+const PASS_CHECK_API_KEY = process.env.PASS_CHECK_API_KEY;
 const PASS_CHECK_API_URL =
-  process.env.PASS_CHECK_API_URL ??
-  "https://api-cloud.ru/api/transportMos.php";
+  process.env.PASS_CHECK_API_URL ?? "http://89.44.86.30:5789/api/v1/check";
 const STATUS_PASS_RELEASED = 41138695;
 
 function parsePassDate(value?: string): number {
@@ -69,10 +68,14 @@ function selectPassInfo(list: PassApiEntry[] = []): PassApiEntry | null {
 }
 
 async function fetchPassInfo(regNumber: string): Promise<PassApiEntry | null> {
-  const url = `${PASS_CHECK_API_URL}?type=pass&regNumber=${encodeURIComponent(
-    regNumber,
-  )}&token=${PASS_CHECK_API_TOKEN}`;
-  const response = await fetch(url);
+  const response = await fetch(PASS_CHECK_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": PASS_CHECK_API_KEY ?? "",
+    },
+    body: JSON.stringify({ type: "pass", regNumber }),
+  });
   if (!response.ok) {
     throw new Error(`Pass API error ${response.status}`);
   }
@@ -232,8 +235,8 @@ async function processLead(
         if (!regNumber) {
           throw new Error("missing regNumber");
         }
-        if (!PASS_CHECK_API_TOKEN) {
-          throw new Error("PASS_CHECK_API_TOKEN is not set");
+        if (!PASS_CHECK_API_KEY) {
+          throw new Error("PASS_CHECK_API_KEY is not set");
         }
         const passInfo = await fetchPassInfo(regNumber);
         if (passInfo) {
